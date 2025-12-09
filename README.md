@@ -1,0 +1,2 @@
+# QChess
+Version 2
