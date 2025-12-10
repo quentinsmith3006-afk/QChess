@@ -48,7 +48,6 @@ public abstract class ChessPiece {
         this.position.col = col;
     }
 
-
     public abstract List<String> getPlayableMoves();
 
     @Override
