@@ -8,7 +8,7 @@ import java.util.List;
 
 public class King extends ChessPiece {
     public King(Coordinate position, Team team) {
-        super(position, team, "ChessAssets/WKing.png","ChessAssets/BKing.png");
+        super(position, team, "/ChessAssets/WKing.png","/ChessAssets/BKing.png");
     }
 
     @Override

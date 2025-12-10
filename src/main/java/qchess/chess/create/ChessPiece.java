@@ -19,12 +19,20 @@ public abstract class ChessPiece {
 
         if (WhiteTeamGraphic != null && BlackTeamGraphic != null) {
             if (team == Team.WHITE) {
-                Image img = new Image(WhiteTeamGraphic);
+                Image img = new Image(
+                        getClass().getResource(WhiteTeamGraphic).toExternalForm()
+                );
+                this.graphic = new ImageView(img);
             } else if (team == Team.BLACK) {
-                Image img = new Image(BlackTeamGraphic);
+                Image img = new Image(
+                        getClass().getResource(BlackTeamGraphic).toExternalForm()
+                );
+                this.graphic = new ImageView(img);
             }
-            ImageView imgView = new ImageView();
-            this.setGraphic(imgView);
+
+            this.graphic.setFitHeight(50);
+            this.graphic.setFitWidth(50);
+
         }
     }
 

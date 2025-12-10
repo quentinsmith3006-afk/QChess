@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Bishop extends ChessPiece {
     public Bishop(Coordinate position, Team team) {
-        super(position, team, "ChessAssets/WBishop.png","ChessAssets/BBishop.png");
+        super(position, team, "/ChessAssets/WBishop.png", "/ChessAssets/BBishop.png");
     }
 
     @Override

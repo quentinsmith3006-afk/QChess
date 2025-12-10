@@ -1,6 +1,8 @@
 package qchess.chess.logic;
 
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import qchess.chess.create.ChessPiece;
 
 public class Position extends Button {
@@ -9,6 +11,10 @@ public class Position extends Button {
     Position(String text, ChessPiece chessPiece) {
         super(text);
         this.chessPiece = chessPiece;
+
+        if  (chessPiece != null && chessPiece.getGraphic() != null) {
+            this.setGraphic(chessPiece.getGraphic());
+        }
 
         this.getStyleClass().add("chess-button");
         this.setPrefSize(150,150);

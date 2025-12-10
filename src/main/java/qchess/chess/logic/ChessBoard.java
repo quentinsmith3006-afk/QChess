@@ -13,16 +13,14 @@ public class ChessBoard extends GridPane {
     public ArrayList<ChessPiece> chessPieces;
 
     protected ChessBoard(String cssClass, String cssFile) {
+        this.getStylesheets().add(cssFile);
+        this.getStyleClass().add(cssClass);
+    }
+
+    public void launchGameLoop() {
         chessPieces = new ArrayList<>();
         initChessPieces();
 
-        this.getStylesheets().add(cssFile);
-        this.getStyleClass().add(cssClass);
-
-        launchGameLoop();
-    }
-
-    protected void launchGameLoop() {
         for (ChessPiece chessPiece : chessPieces) {
             Position chessPosition = chessPositions[chessPiece.getBtnID()];
             if (chessPiece.getGraphic() == null) {
@@ -131,19 +129,19 @@ public class ChessBoard extends GridPane {
 
             // black bishop
             if (row == 7 && (col == 2 || col == 5)) {
-                Bishop bishop = new Bishop(pos, Team.WHITE);
+                Bishop bishop = new Bishop(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(bishop);
             }
 
             // black queen
             if (row == 7 && col == 3) {
-                Queen queen = new Queen(pos, Team.WHITE);
+                Queen queen = new Queen(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(queen);
             }
 
             // black king
             if (row == 7 && col == 4) {
-                King king = new King(pos, Team.WHITE);
+                King king = new King(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(king);
             }
         }
@@ -170,7 +168,7 @@ public class ChessBoard extends GridPane {
                 for (int col = 0; col < 8; col++) {
                     int btnID = row * 8 + col;
 
-                    Position pos = new Position(row + " " + col);
+                    Position pos = new Position();
                     chessPositions[btnID] = pos;
 
                     if ((btnID + shiftCounter) % 2 == 0) {
