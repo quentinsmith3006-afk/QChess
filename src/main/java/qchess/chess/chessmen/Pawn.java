@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Pawn extends ChessPiece {
     public Pawn(Coordinate position, Team team) {
-        super(position, team);
+        super(position, team, "ChessAssets/WPawn.png","ChessAssets/BPawn.png");
     }
 
 

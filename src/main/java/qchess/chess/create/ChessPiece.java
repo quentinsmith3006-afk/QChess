@@ -1,5 +1,8 @@
 package qchess.chess.create;
 
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
 import java.util.List;
 
 public abstract class ChessPiece {
@@ -7,11 +10,26 @@ public abstract class ChessPiece {
     boolean pinned;
     String name;
     Team team;
+    ImageView graphic;
 
-    public ChessPiece(Coordinate position, Team team) {
+    public ChessPiece(Coordinate position, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
         this.position = position;
         this.name = this.getClass().getSimpleName();
         this.team = team;
+
+        if (WhiteTeamGraphic != null && BlackTeamGraphic != null) {
+            if (team == Team.WHITE) {
+                Image img = new Image(WhiteTeamGraphic);
+            } else if (team == Team.BLACK) {
+                Image img = new Image(BlackTeamGraphic);
+            }
+            ImageView imgView = new ImageView();
+            this.setGraphic(imgView);
+        }
+    }
+
+    public ChessPiece(Coordinate position, Team team) {
+        this(position, team, null, null);
     }
 
     public Coordinate getPosition() {
@@ -26,6 +44,14 @@ public abstract class ChessPiece {
         return pinned;
     }
 
+    public ImageView getGraphic() {
+        return this.graphic;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public int getBtnID() {
         return this.position.btnID;
     }
@@ -36,6 +62,10 @@ public abstract class ChessPiece {
 
     public int getCol() {
         return this.position.col;
+    }
+
+    public void setGraphic(ImageView graphic) {
+        this.graphic = graphic;
     }
 
     public void setBtnID(int btnID) {

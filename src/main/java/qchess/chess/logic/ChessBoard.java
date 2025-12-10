@@ -6,16 +6,43 @@ import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 
+import java.util.ArrayList;
+
 public class ChessBoard extends GridPane {
     public Position[] chessPositions;
+    public ArrayList<ChessPiece> chessPieces;
 
     protected ChessBoard(String cssClass, String cssFile) {
+        chessPieces = new ArrayList<>();
+        initChessPieces();
+
         this.getStylesheets().add(cssFile);
         this.getStyleClass().add(cssClass);
+
+        launchGameLoop();
+    }
+
+    protected void launchGameLoop() {
+        for (ChessPiece chessPiece : chessPieces) {
+            Position chessPosition = chessPositions[chessPiece.getBtnID()];
+            if (chessPiece.getGraphic() == null) {
+                chessPosition.setText(chessPiece.getName());
+            } else {
+                chessPosition.setGraphic(chessPiece.getGraphic());
+            }
+        }
     }
 
     protected ChessBoard() {
         this("chessBoard",  "chessBoard.css");
+    }
+
+    private void initChessPieces() {
+        for (Position position : chessPositions) {
+            if (position.chessPiece != null) {
+                chessPieces.add(position.chessPiece);
+            }
+        }
     }
 
     public ChessPiece getChessPiece(int btnID) {
