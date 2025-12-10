@@ -73,5 +73,4 @@ public class ChessBoard extends GridPane {
             return chessBoard;
         }
     }
-
 }
