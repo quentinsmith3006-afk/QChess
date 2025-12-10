@@ -6,10 +6,12 @@ public abstract class ChessPiece {
     Coordinate position;
     boolean pinned;
     String name;
+    Team team;
 
-    public ChessPiece(Coordinate position) {
+    public ChessPiece(Coordinate position, Team team) {
         this.position = position;
         this.name = this.getClass().getSimpleName();
+        this.team = team;
     }
 
     public Coordinate getPosition() {
@@ -48,7 +50,7 @@ public abstract class ChessPiece {
         this.position.col = col;
     }
 
-    public abstract List<String> getPlayableMoves();
+    public abstract List<Coordinate> getPlayableMoves(Coordinate startingPosition);
 
     @Override
     public String toString() {

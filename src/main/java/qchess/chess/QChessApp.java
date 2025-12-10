@@ -30,7 +30,7 @@ public class QChessApp extends Application {
         Image img = new Image("galaxybackground.png");
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
-                .emptyChessGrid()
+                .emptyChessBoard()
                 .build()
         ;
 

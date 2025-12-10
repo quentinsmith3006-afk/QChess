@@ -1,4 +1,18 @@
 package qchess.chess.chessmen;
 
-public class Knight {
+import qchess.chess.create.ChessPiece;
+import qchess.chess.create.Coordinate;
+import qchess.chess.create.Team;
+
+import java.util.List;
+
+public class Knight extends ChessPiece {
+    public Knight(Coordinate position, Team team) {
+        super(position, team);
+    }
+
+    @Override
+    public List<Coordinate> getPlayableMoves(Coordinate startingPosition) {
+        return List.of();
+    }
 }
