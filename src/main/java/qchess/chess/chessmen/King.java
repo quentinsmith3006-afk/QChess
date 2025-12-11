@@ -12,7 +12,7 @@ public class King extends ChessPiece {
     }
 
     @Override
-    public List<Coordinate> getPlayableMoves(Coordinate startingPosition) {
+    public List<Coordinate> getPlayableMoves() {
         return List.of();
     }
 }

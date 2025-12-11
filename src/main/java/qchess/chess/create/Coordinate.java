@@ -59,4 +59,5 @@ public class Coordinate {
 
         return ALGEBRAIC_MAP;
     }
+
 }

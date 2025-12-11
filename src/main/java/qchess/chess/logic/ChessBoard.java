@@ -1,23 +1,29 @@
 package qchess.chess.logic;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.layout.GridPane;
 import qchess.chess.chessmen.*;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
+import qchess.chess.logic.event.ChessEvent;
+import qchess.chess.logic.event.ChessEventHandler;
+import qchess.chess.logic.event.MovementEvent;
 
 import java.util.ArrayList;
 
 public class ChessBoard extends GridPane {
     public Position[] chessPositions;
     public ArrayList<ChessPiece> chessPieces;
+    protected Team playerTeam = Team.WHITE;
 
     protected ChessBoard(String cssClass, String cssFile) {
         this.getStylesheets().add(cssFile);
         this.getStyleClass().add(cssClass);
     }
 
-    public void launchGameLoop() {
+    public void gameLoopLauncher() {
         chessPieces = new ArrayList<>();
         initChessPieces();
 
@@ -31,16 +37,49 @@ public class ChessBoard extends GridPane {
         }
     }
 
-    protected ChessBoard() {
-        this("chessBoard",  "chessBoard.css");
-    }
-
     private void initChessPieces() {
         for (Position position : chessPositions) {
+            EventHandler<ActionEvent> movement = (e) -> positionClick(position);
+
+            position.setOnAction(movement);
             if (position.chessPiece != null) {
                 chessPieces.add(position.chessPiece);
             }
         }
+    }
+
+    public void positionClick(Position position) {
+        if (position.getChessPiece() != null) {
+            for (Coordinate coord : position.getChessPiece().getPlayableMoves()) {
+                chessPositions[coord.getBtnID()].setText("o");
+            }
+
+        }
+
+    }
+
+    public void setOnMovement(ChessEventHandler<MovementEvent> handler) {
+        if (handler == null) {
+            return;
+        }
+
+        handler.handleChessEvent(new MovementEvent());
+    }
+
+    public void switchTeams() {
+        if (this.playerTeam == Team.BLACK) {
+            this.playerTeam = Team.WHITE;
+        } else {
+            this.playerTeam = Team.BLACK;
+        }
+    }
+
+    public void switchTeam(Team team) {
+        this.playerTeam = team;
+    }
+
+    protected ChessBoard() {
+        this("chessBoard",  "chessBoard.css");
     }
 
     public ChessPiece getChessPiece(int btnID) {
@@ -168,7 +207,7 @@ public class ChessBoard extends GridPane {
                 for (int col = 0; col < 8; col++) {
                     int btnID = row * 8 + col;
 
-                    Position pos = new Position();
+                    Position pos = new Position(new Coordinate(row, col));
                     chessPositions[btnID] = pos;
 
                     if ((btnID + shiftCounter) % 2 == 0) {
@@ -230,6 +269,18 @@ public class ChessBoard extends GridPane {
         public Builder stylizeChessBoard (String cssClass, String cssFile) {
             chessBoard.getStylesheets().add(cssFile);
             chessBoard.getStyleClass().add(cssClass);
+
+            return this;
+        }
+
+        public Builder setSwitchTeams(boolean switchTeams) {
+            if (!switchTeams) {
+                chessBoard.setOnMovement(null);
+                return this;
+            }
+
+            ChessEventHandler<MovementEvent> handler = (me) -> chessBoard.switchTeams();
+            chessBoard.setOnMovement(handler);
 
             return this;
         }

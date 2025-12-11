@@ -6,11 +6,11 @@ import javafx.scene.image.ImageView;
 import java.util.List;
 
 public abstract class ChessPiece {
-    Coordinate position;
-    boolean pinned;
-    String name;
-    Team team;
-    ImageView graphic;
+    protected Coordinate position;
+    protected boolean pinned;
+    protected String name;
+    protected Team team;
+    protected ImageView graphic;
 
     public ChessPiece(Coordinate position, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
         this.position = position;
@@ -88,7 +88,7 @@ public abstract class ChessPiece {
         this.position.col = col;
     }
 
-    public abstract List<Coordinate> getPlayableMoves(Coordinate startingPosition);
+    public abstract List<Coordinate> getPlayableMoves();
 
     @Override
     public String toString() {
