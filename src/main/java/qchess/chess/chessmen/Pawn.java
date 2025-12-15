@@ -1,22 +1,23 @@
 package qchess.chess.chessmen;
 
 import qchess.chess.create.ChessPiece;
+import qchess.chess.create.Chiral;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Chiral("Pawn")
 public class Pawn extends ChessPiece {
     public Pawn(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WPawn.png","/ChessAssets/BPawn.png");
     }
 
-
     @Override
     public List<Coordinate> getPlayableMoves() {
         ArrayList<Coordinate> moves = new ArrayList<>();
-        int row = position.getRow();
+        int row = getRow();
 
         if (row == 7 || row == 0) {
             return moves;
@@ -28,12 +29,12 @@ public class Pawn extends ChessPiece {
             momentum = -1;
         }
 
-        int forwardOne = (position.getBtnID() + 8) * momentum;
+        int forwardOne = (getBtnID() + 8 * momentum);
 
         boolean isWhiteOnStart = (row == 1);
         boolean isBlackOnStart = (row == 6);
         if (isWhiteOnStart || isBlackOnStart) {
-            int forwardTwo = (position.getBtnID() + 16) * momentum;
+            int forwardTwo = (getBtnID() + 16 * momentum);
             Coordinate twoPlacesAway = new Coordinate(forwardTwo);
             moves.add(twoPlacesAway);
         }

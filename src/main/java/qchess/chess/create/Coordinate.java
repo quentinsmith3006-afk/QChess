@@ -31,7 +31,6 @@ public class Coordinate {
                 Coordinate.ALGEBRAIC_MAP.get(algebraicNotation.substring(0, 1)),
                 Integer.parseInt(algebraicNotation.substring(1, 2))
         );
-
     }
 
     public int getRow() {
@@ -59,5 +58,18 @@ public class Coordinate {
 
         return ALGEBRAIC_MAP;
     }
+
+    public String toString() {
+        return "Col: " + col + ", Row: " + row;
+    }
+
+    public boolean equals(Coordinate coordinate) {
+        if (coordinate == null) {
+            throw new NullPointerException("coordinate is null");
+        }
+
+        return coordinate.getRow() == this.row || coordinate.getCol() == this.col;
+    }
+
 
 }

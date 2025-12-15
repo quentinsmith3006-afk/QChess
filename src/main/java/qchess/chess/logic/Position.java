@@ -10,9 +10,8 @@ import qchess.chess.create.Coordinate;
 
 public class Position extends Button {
     ChessPiece chessPiece;
-    Coordinate coordinate;
 
-    Position(String text, ChessPiece chessPiece, Coordinate coordinate) {
+    Position(String text, ChessPiece chessPiece) {
         super(text);
         this.chessPiece = chessPiece;
 
@@ -24,16 +23,12 @@ public class Position extends Button {
         this.setPrefSize(150,150);
     }
 
-    Position(String text, Coordinate coordinate) {
-        this(text, null,  coordinate);
+    Position(String text) {
+        this(text, null);
     }
 
-    Position(Coordinate coordinate) {
-        this("", coordinate);
-    }
-
-    public Coordinate getCoordinate() {
-        return coordinate;
+    Position() {
+        this("");
     }
 
     public ChessPiece getChessPiece() {

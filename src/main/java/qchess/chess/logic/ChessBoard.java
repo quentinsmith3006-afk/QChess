@@ -1,14 +1,16 @@
 package qchess.chess.logic;
 
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.layout.GridPane;
 import qchess.chess.chessmen.*;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
+import qchess.chess.logic.event.CheckEvent;
+import qchess.chess.logic.event.CheckMateEvent;
 import qchess.chess.logic.event.ChessEvent;
-import qchess.chess.logic.event.ChessEventHandler;
 import qchess.chess.logic.event.MovementEvent;
 
 import java.util.ArrayList;
@@ -18,12 +20,13 @@ public class ChessBoard extends GridPane {
     public ArrayList<ChessPiece> chessPieces;
     protected Team playerTeam = Team.WHITE;
 
+
     protected ChessBoard(String cssClass, String cssFile) {
         this.getStylesheets().add(cssFile);
         this.getStyleClass().add(cssClass);
     }
 
-    public void gameLoopLauncher() {
+    public void launchGame() {
         chessPieces = new ArrayList<>();
         initChessPieces();
 
@@ -39,31 +42,13 @@ public class ChessBoard extends GridPane {
 
     private void initChessPieces() {
         for (Position position : chessPositions) {
-            EventHandler<ActionEvent> movement = (e) -> positionClick(position);
+            EventHandler<ActionEvent> movement = (e) -> Move.positionClick(position);
 
             position.setOnAction(movement);
             if (position.chessPiece != null) {
                 chessPieces.add(position.chessPiece);
             }
         }
-    }
-
-    public void positionClick(Position position) {
-        if (position.getChessPiece() != null) {
-            for (Coordinate coord : position.getChessPiece().getPlayableMoves()) {
-                chessPositions[coord.getBtnID()].setText("o");
-            }
-
-        }
-
-    }
-
-    public void setOnMovement(ChessEventHandler<MovementEvent> handler) {
-        if (handler == null) {
-            return;
-        }
-
-        handler.handleChessEvent(new MovementEvent());
     }
 
     public void switchTeams() {
@@ -88,6 +73,22 @@ public class ChessBoard extends GridPane {
 
     public static Builder newBuilder() {
         return new Builder();
+    }
+
+    public void setOnPieceMovement(EventHandler<ChessEvent> movement) {
+        this.addEventHandler(MovementEvent.MOVEMENT, movement);
+    }
+
+    public void setOnCheckMate(EventHandler<ChessEvent> movement) {
+        this.addEventHandler(CheckMateEvent.CHECK_MATE, movement);
+    }
+
+    public void setOnCheck(EventHandler<ChessEvent> movement) {
+        this.addEventHandler(CheckEvent.CHECK, movement);
+    }
+
+    public void setChessEvent(EventHandler<Event> movement) {
+        this.addEventHandler(ChessEvent.ANY, movement);
     }
 
     public static class Builder {
@@ -207,7 +208,7 @@ public class ChessBoard extends GridPane {
                 for (int col = 0; col < 8; col++) {
                     int btnID = row * 8 + col;
 
-                    Position pos = new Position(new Coordinate(row, col));
+                    Position pos = new Position();
                     chessPositions[btnID] = pos;
 
                     if ((btnID + shiftCounter) % 2 == 0) {
@@ -273,14 +274,10 @@ public class ChessBoard extends GridPane {
             return this;
         }
 
-        public Builder setSwitchTeams(boolean switchTeams) {
-            if (!switchTeams) {
-                chessBoard.setOnMovement(null);
-                return this;
-            }
+        public Builder setSwitchTeams() {
+            EventHandler<ChessEvent> handle = (ChessEvent me) -> chessBoard.switchTeams();
 
-            ChessEventHandler<MovementEvent> handler = (me) -> chessBoard.switchTeams();
-            chessBoard.setOnMovement(handler);
+            chessBoard.addEventFilter(MovementEvent.MOVEMENT, handle);
 
             return this;
         }
@@ -307,6 +304,7 @@ public class ChessBoard extends GridPane {
             nullBoardCheck(boardType);
 
             chessBoard.chessPositions = this.chessPositions;
+            Move.chessBoard = chessBoard;
             return chessBoard;
         }
     }

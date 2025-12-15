@@ -34,7 +34,7 @@ public class QChessApp extends Application {
                 .build()
         ;
 
-        chessBoard.gameLoopLauncher();
+        chessBoard.launchGame();
 
         double width = 500;
         double height = 25;
