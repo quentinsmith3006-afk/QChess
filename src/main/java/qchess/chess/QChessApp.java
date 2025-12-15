@@ -30,9 +30,11 @@ public class QChessApp extends Application {
         Image img = new Image("galaxybackground.png");
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
-                .emptyChessGrid()
+                .normalChessBoard()
                 .build()
         ;
+
+        chessBoard.launchGame();
 
         double width = 500;
         double height = 25;
@@ -53,7 +55,7 @@ public class QChessApp extends Application {
         borderPane = new BorderPane(chessBoard, top, right, bottom, left);
 
         root = new StackPane();
-        scene = new Scene(root, 500, 500);
+        scene = new Scene(root, 600, 600);
     }
 
     @Override
@@ -64,7 +66,7 @@ public class QChessApp extends Application {
 
 
         stage.setScene(scene);
-        stage.setResizable(false);
+        //stage.setResizable(false);
         stage.sizeToScene();
         stage.setTitle("QChessV2");
         stage.show();

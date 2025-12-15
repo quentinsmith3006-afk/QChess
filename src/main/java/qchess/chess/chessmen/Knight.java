@@ -6,9 +6,9 @@ import qchess.chess.create.Team;
 
 import java.util.List;
 
-public class Queen extends ChessPiece {
-    public Queen(Coordinate position, Team team) {
-        super(position, team, "/ChessAssets/WQueen.png","/ChessAssets/BQueen.png");
+public class Knight extends ChessPiece {
+    public Knight(Coordinate position, Team team) {
+        super(position, team, "/ChessAssets/WKnight.png","/ChessAssets/BKnight.png");
     }
 
     @Override

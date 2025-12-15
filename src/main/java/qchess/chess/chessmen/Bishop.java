@@ -2,16 +2,17 @@ package qchess.chess.chessmen;
 
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
+import qchess.chess.create.Team;
 
 import java.util.List;
 
 public class Bishop extends ChessPiece {
-    public Bishop(Coordinate position) {
-        super(position);
+    public Bishop(Coordinate position, Team team) {
+        super(position, team, "/ChessAssets/WBishop.png", "/ChessAssets/BBishop.png");
     }
 
     @Override
-    public List<String> getPlayableMoves() {
+    public List<Coordinate> getPlayableMoves() {
         return List.of();
     }
 }

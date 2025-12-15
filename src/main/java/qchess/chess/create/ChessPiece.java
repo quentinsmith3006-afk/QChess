@@ -1,15 +1,43 @@
 package qchess.chess.create;
 
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
 import java.util.List;
 
 public abstract class ChessPiece {
-    Coordinate position;
-    boolean pinned;
-    String name;
+    protected Coordinate position;
+    protected boolean pinned;
+    protected String name;
+    protected Team team;
+    protected ImageView graphic;
 
-    public ChessPiece(Coordinate position) {
+    public ChessPiece(Coordinate position, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
         this.position = position;
         this.name = this.getClass().getSimpleName();
+        this.team = team;
+
+        if (WhiteTeamGraphic != null && BlackTeamGraphic != null) {
+            if (team == Team.WHITE) {
+                Image img = new Image(
+                        getClass().getResource(WhiteTeamGraphic).toExternalForm()
+                );
+                this.graphic = new ImageView(img);
+            } else if (team == Team.BLACK) {
+                Image img = new Image(
+                        getClass().getResource(BlackTeamGraphic).toExternalForm()
+                );
+                this.graphic = new ImageView(img);
+            }
+
+            this.graphic.setFitHeight(50);
+            this.graphic.setFitWidth(50);
+
+        }
+    }
+
+    public ChessPiece(Coordinate position, Team team) {
+        this(position, team, null, null);
     }
 
     public Coordinate getPosition() {
@@ -24,6 +52,14 @@ public abstract class ChessPiece {
         return pinned;
     }
 
+    public ImageView getGraphic() {
+        return this.graphic;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public int getBtnID() {
         return this.position.btnID;
     }
@@ -34,6 +70,10 @@ public abstract class ChessPiece {
 
     public int getCol() {
         return this.position.col;
+    }
+
+    public void setGraphic(ImageView graphic) {
+        this.graphic = graphic;
     }
 
     public void setBtnID(int btnID) {
@@ -48,7 +88,7 @@ public abstract class ChessPiece {
         this.position.col = col;
     }
 
-    public abstract List<String> getPlayableMoves();
+    public abstract List<Coordinate> getPlayableMoves();
 
     @Override
     public String toString() {
