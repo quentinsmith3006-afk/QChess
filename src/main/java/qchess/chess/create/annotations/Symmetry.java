@@ -1,4 +1,4 @@
-package qchess.chess.create;
+package qchess.chess.create.annotations;
 
 public @interface Symmetry {
 }

@@ -1,4 +1,11 @@
 package qchess.chess.logic.event;
 
-public class CaptureEvent {
+import javafx.event.EventType;
+
+public class CaptureEvent extends ChessEvent {
+    private static final EventType<CaptureEvent> CAPTURE = new EventType<>(ChessEvent.ANY, "CAPTURE");
+
+    public CaptureEvent() {
+        super(CAPTURE);
+    }
 }

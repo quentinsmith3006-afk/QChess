@@ -11,6 +11,7 @@ import java.util.List;
 public class Rook extends ChessPiece {
     public Rook(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WRook.png","/ChessAssets/BRook.png");
+        this.pieceValue = 5;
     }
 
     @Override

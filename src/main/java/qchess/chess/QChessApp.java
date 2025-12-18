@@ -11,6 +11,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import qchess.chess.chessmen.Pawn;
+import qchess.chess.create.Coordinate;
+import qchess.chess.create.Team;
 import qchess.chess.logic.ChessBoard;
 
 import java.io.IOException;
@@ -31,6 +34,7 @@ public class QChessApp extends Application {
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
                 .normalChessBoard()
+                .setSwitchTeams()
                 .build()
         ;
 

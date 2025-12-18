@@ -16,7 +16,7 @@ import qchess.chess.logic.event.MovementEvent;
 import java.util.ArrayList;
 
 public class ChessBoard extends GridPane {
-    public Position[] chessPositions;
+    public ChessPosition[] chessPositions;
     public ArrayList<ChessPiece> chessPieces;
     protected Team playerTeam = Team.WHITE;
 
@@ -28,25 +28,32 @@ public class ChessBoard extends GridPane {
 
     public void launchGame() {
         chessPieces = new ArrayList<>();
-        initChessPieces();
 
-        for (ChessPiece chessPiece : chessPieces) {
-            Position chessPosition = chessPositions[chessPiece.getBtnID()];
-            if (chessPiece.getGraphic() == null) {
-                chessPosition.setText(chessPiece.getName());
-            } else {
-                chessPosition.setGraphic(chessPiece.getGraphic());
-            }
-        }
-    }
-
-    private void initChessPieces() {
-        for (Position position : chessPositions) {
+        for (ChessPosition position : chessPositions) {
             EventHandler<ActionEvent> movement = (e) -> Move.positionClick(position);
 
             position.setOnAction(movement);
             if (position.chessPiece != null) {
                 chessPieces.add(position.chessPiece);
+            }
+        }
+
+        initChessPieces();
+    }
+
+    private void initChessPieces() {
+        for (ChessPiece chessPiece : chessPieces) {
+            chessPiece.setPosition(chessPositions[chessPiece.getBtnID()]);
+            ChessPosition chessPosition = chessPiece.getPosition();
+            if (chessPiece.getTeam() == playerTeam) {
+                chessPosition.setDisable(false);
+            }
+
+            //graphics init
+            if (chessPiece.getGraphic() == null) {
+                chessPosition.setText(chessPiece.getName());
+            } else {
+                chessPosition.setGraphic(chessPiece.getGraphic());
             }
         }
     }
@@ -57,6 +64,15 @@ public class ChessBoard extends GridPane {
         } else {
             this.playerTeam = Team.BLACK;
         }
+
+        for (ChessPiece chessPiece : chessPieces) {
+            ChessPosition chessPosition = chessPiece.getPosition();
+            if (chessPiece.getTeam() == playerTeam) {
+                chessPosition.setDisable(false);
+            } else {
+                chessPosition.setDisable(true);
+            }
+        }
     }
 
     public void switchTeam(Team team) {
@@ -65,6 +81,10 @@ public class ChessBoard extends GridPane {
 
     protected ChessBoard() {
         this("chessBoard",  "chessBoard.css");
+    }
+
+    public ChessPosition[] getChessPositions() {
+        return chessPositions;
     }
 
     public ChessPiece getChessPiece(int btnID) {
@@ -93,7 +113,7 @@ public class ChessBoard extends GridPane {
 
     public static class Builder {
         ChessBoard chessBoard;
-        Position[] chessPositions;
+        ChessPosition[] chessPositions;
         BoardType boardType;
 
         private enum BoardType {
@@ -103,7 +123,7 @@ public class ChessBoard extends GridPane {
 
         Builder() {
             this.chessBoard = new ChessBoard();
-            this.chessPositions = new Position[64];
+            this.chessPositions = new ChessPosition[64];
         }
 
         private void addWhiteTeam(int row, int col) {
@@ -208,7 +228,9 @@ public class ChessBoard extends GridPane {
                 for (int col = 0; col < 8; col++) {
                     int btnID = row * 8 + col;
 
-                    Position pos = new Position();
+                    ChessPosition pos = new ChessPosition(new Coordinate(row, col));
+                    pos.setDisable(true);
+
                     chessPositions[btnID] = pos;
 
                     if ((btnID + shiftCounter) % 2 == 0) {
@@ -250,7 +272,7 @@ public class ChessBoard extends GridPane {
                 shiftCounter++;
                 for (int col = 0; col < 8; col++) {
                     int btnID = row * 8 + col;
-                    Position pos = chessPositions[btnID];
+                    ChessPosition pos = chessPositions[btnID];
 
                     if ((btnID + shiftCounter) % 2 == 0) {
                         pos.setId(oddSquaresID);

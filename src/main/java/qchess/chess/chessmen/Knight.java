@@ -9,6 +9,7 @@ import java.util.List;
 public class Knight extends ChessPiece {
     public Knight(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WKnight.png","/ChessAssets/BKnight.png");
+        this.pieceValue = 3;
     }
 
     @Override

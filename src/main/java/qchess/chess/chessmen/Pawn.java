@@ -1,15 +1,15 @@
 package qchess.chess.chessmen;
 
 import qchess.chess.create.ChessPiece;
-import qchess.chess.create.Chiral;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Chiral("Pawn")
 public class Pawn extends ChessPiece {
+    private boolean enpassant;
+
     public Pawn(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WPawn.png","/ChessAssets/BPawn.png");
     }
@@ -23,13 +23,7 @@ public class Pawn extends ChessPiece {
             return moves;
         }
 
-        int momentum = 1;
-
-        if (team == Team.BLACK) {
-            momentum = -1;
-        }
-
-        int forwardOne = (getBtnID() + 8 * momentum);
+        int momentum = team == Team.BLACK ? -1 : 1;
 
         boolean isWhiteOnStart = (row == 1);
         boolean isBlackOnStart = (row == 6);
@@ -39,6 +33,7 @@ public class Pawn extends ChessPiece {
             moves.add(twoPlacesAway);
         }
 
+        int forwardOne = (getBtnID() + 8 * momentum);
         Coordinate onePlaceAway = new Coordinate(forwardOne);
         moves.add(onePlaceAway);
 
