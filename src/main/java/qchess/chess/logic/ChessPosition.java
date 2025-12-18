@@ -1,19 +1,17 @@
 package qchess.chess.logic;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 
-public class Position extends Button {
+public class ChessPosition extends Button {
     ChessPiece chessPiece;
+    Coordinate coordinate;
 
-    Position(String text, ChessPiece chessPiece) {
+    ChessPosition(String text, ChessPiece chessPiece, Coordinate coordinate) {
         super(text);
         this.chessPiece = chessPiece;
+        this.coordinate = coordinate;
 
         if  (chessPiece != null && chessPiece.getGraphic() != null) {
             this.setGraphic(chessPiece.getGraphic());
@@ -23,12 +21,12 @@ public class Position extends Button {
         this.setPrefSize(150,150);
     }
 
-    Position(String text) {
-        this(text, null);
+    ChessPosition(String text, Coordinate coordinate) {
+        this(text, null, coordinate);
     }
 
-    Position() {
-        this("");
+    ChessPosition(Coordinate coordinate) {
+        this("", coordinate);
     }
 
     public ChessPiece getChessPiece() {

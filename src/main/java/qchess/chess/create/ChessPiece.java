@@ -2,18 +2,21 @@ package qchess.chess.create;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import qchess.chess.logic.ChessPosition;
 
 import java.util.List;
 
 public abstract class ChessPiece {
-    protected Coordinate position;
+    protected ChessPosition position;
+    protected Coordinate coordinate;
     protected boolean pinned;
     protected String name;
     protected Team team;
     protected ImageView graphic;
+    protected int pieceValue;
 
-    public ChessPiece(Coordinate position, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
-        this.position = position;
+    public ChessPiece(Coordinate coordinate, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
+        this.coordinate = coordinate;
         this.name = this.getClass().getSimpleName();
         this.team = team;
 
@@ -36,56 +39,50 @@ public abstract class ChessPiece {
         }
     }
 
-    public ChessPiece(Coordinate position, Team team) {
-        this(position, team, null, null);
+    public ChessPiece(Coordinate coordinate, Team team) {
+        this(coordinate, team, null, null);
     }
 
-    public Coordinate getPosition() {
-        return position;
-    }
+    public Coordinate getCoordinate() {return coordinate;}
 
-    public void setPosition(Coordinate position) {
-        this.position = position;
-    }
+    public void setCoordinate(Coordinate coordinate) {this.coordinate = coordinate;}
+
+    public ChessPosition getPosition() {return position;}
+
+    public void setPosition(ChessPosition position) {this.position = position;}
 
     public boolean isPinned() {
         return pinned;
     }
 
-    public ImageView getGraphic() {
-        return this.graphic;
-    }
+    public Team getTeam() {return team;}
 
-    public String getName() {
-        return name;
-    }
+    public ImageView getGraphic() {return this.graphic;}
+
+    public String getName() {return name;}
 
     public int getBtnID() {
-        return this.position.btnID;
+        return this.coordinate.btnID;
     }
 
     public int getRow() {
-        return this.position.row;
+        return this.coordinate.row;
     }
 
-    public int getCol() {
-        return this.position.col;
-    }
+    public int getCol() {return this.coordinate.col;}
 
-    public void setGraphic(ImageView graphic) {
-        this.graphic = graphic;
-    }
+    public void setGraphic(ImageView graphic) {this.graphic = graphic;}
 
     public void setBtnID(int btnID) {
-        this.position.btnID = btnID;
+        this.coordinate.btnID = btnID;
     }
 
     public void setRow(int row) {
-        this.position.row = row;
+        this.coordinate.row = row;
     }
 
     public void setCol(int col) {
-        this.position.col = col;
+        this.coordinate.col = col;
     }
 
     public abstract List<Coordinate> getPlayableMoves();
