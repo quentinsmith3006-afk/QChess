@@ -6,6 +6,7 @@ public class Coordinate {
     int row;
     int col;
     int btnID;
+    boolean canCapture;
     String algebraicName;
 
     static String[] ALGEBRAIC = new String[]{
@@ -47,6 +48,14 @@ public class Coordinate {
 
     public int getBtnID() {
         return btnID;
+    }
+
+    public boolean isCanCapture() {
+        return canCapture;
+    }
+
+    public void setCanCapture(boolean canCapture) {
+        this.canCapture = canCapture;
     }
 
     private static HashMap<String, Integer> algebraicMapInit() {
