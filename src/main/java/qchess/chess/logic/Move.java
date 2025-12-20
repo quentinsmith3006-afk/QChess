@@ -77,11 +77,13 @@ class Move {
                 ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
 
                 System.out.println(posOfCoord.getChessPiece() + " " + posOfCoord.coordinate);
-                boolean posHasChessPiece = posOfCoord.getChessPiece() == null;
-                if (!posHasChessPiece && !hasAnnotation(chessPiece.getClass(), Xray.class)) {
+                boolean posHasChessPiece = posOfCoord.getChessPiece() != null;
+                System.out.println(ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class));
+                if (posHasChessPiece && !ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
                     break;
                 }
 
+                System.out.println(posOfCoord.coordinate);
                 posOfCoord.setDisable(false);
 
                 pastPositions[i++] = posOfCoord;
@@ -92,7 +94,7 @@ class Move {
     private static void disablePastPlayablePositions() {
         if (pastPositions != null) {
             for (ChessPosition pos : pastPositions) {
-                if (pos.getChessPiece() == null) {
+                if (pos != null && pos.getChessPiece() == null) {
                     //System.out.println(pos.coordinate + "coord w/o chesspiece");
                     pos.setDisable(true);
                 }
@@ -140,10 +142,6 @@ class Move {
         pos.setChessPiece(null);
         pos.setGraphic(null);
         pos.setDisable(true);
-    }
-
-    private static boolean hasAnnotation(Class<? extends ChessPiece> clazz, Class<? extends Annotation> annotation) {
-        return clazz.isAnnotationPresent(annotation);
     }
 
     private static void sort(List<Coordinate> coords, Coordinate focal) {

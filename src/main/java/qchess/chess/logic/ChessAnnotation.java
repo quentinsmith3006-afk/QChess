@@ -55,4 +55,8 @@ public class ChessAnnotation {
 
         return playableMoves;
     }
+
+    public static boolean hasAnnotation(Class<? extends ChessPiece> clazz, Class<? extends Annotation> annotation) {
+        return clazz.isAnnotationPresent(annotation);
+    }
 }

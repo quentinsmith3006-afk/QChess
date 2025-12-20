@@ -4,6 +4,7 @@ import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.annotations.HorizonalSymmetry;
+import qchess.chess.create.annotations.Xray;
 
 import java.util.ArrayList;
 import java.util.List;
