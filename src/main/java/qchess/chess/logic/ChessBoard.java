@@ -24,6 +24,7 @@ public class ChessBoard extends GridPane {
     protected ChessBoard(String cssClass, String cssFile) {
         this.getStylesheets().add(cssFile);
         this.getStyleClass().add(cssClass);
+        ChessAnnotation.chessAnnotationsInit();
     }
 
     public void launchGame() {

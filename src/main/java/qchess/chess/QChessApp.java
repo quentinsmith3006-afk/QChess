@@ -68,7 +68,6 @@ public class QChessApp extends Application {
 
         root.getChildren().addAll(background, borderPane);
 
-
         stage.setScene(scene);
         //stage.setResizable(false);
         stage.sizeToScene();
