@@ -3,7 +3,6 @@ package qchess.chess.logic;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.annotations.HorizonalSymmetry;
-import qchess.chess.create.interfaces.Operable;
 import qchess.chess.create.interfaces.SymmetryOperation;
 
 import java.lang.annotation.Annotation;
