@@ -68,11 +68,7 @@ public class ChessBoard extends GridPane {
 
         for (ChessPiece chessPiece : chessPieces) {
             ChessPosition chessPosition = chessPiece.getPosition();
-            if (chessPiece.getTeam() == playerTeam) {
-                chessPosition.setDisable(false);
-            } else {
-                chessPosition.setDisable(true);
-            }
+            chessPosition.setDisable(chessPiece.getTeam() != playerTeam);
         }
     }
 

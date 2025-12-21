@@ -3,24 +3,14 @@ package qchess.chess.logic;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
-import qchess.chess.create.annotations.HorizonalSymmetry;
-import qchess.chess.create.annotations.Symmetry;
-import qchess.chess.create.annotations.VerticalSymmetry;
 import qchess.chess.create.annotations.Xray;
-import qchess.chess.create.interfaces.SymmetryOperation;
 import qchess.chess.logic.event.CaptureEvent;
 import qchess.chess.logic.event.MovementEvent;
 
 import java.lang.Math;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 class Move {
     public static ChessBoard chessBoard;
