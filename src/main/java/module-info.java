@@ -1,4 +1,4 @@
-module qchess.chess.qchessv2 {
+module qchess.chess {
     requires javafx.controls;
     requires javafx.fxml;
 

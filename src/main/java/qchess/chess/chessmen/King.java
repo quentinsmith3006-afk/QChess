@@ -3,6 +3,7 @@ package qchess.chess.chessmen;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
+import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.interfaces.Checkable;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public class King extends ChessPiece implements Checkable {
     }
 
     @Override
-    public List<Coordinate> getPlayableMoves() {
+    public List<ChessDirection> getPlayableMoves() {
         return List.of();
     }
 }

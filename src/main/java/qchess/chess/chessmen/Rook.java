@@ -1,10 +1,9 @@
 package qchess.chess.chessmen;
 
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
+import qchess.chess.create.direction.ChessDirection;
 
 import java.util.List;
 
@@ -15,7 +14,7 @@ public class Rook extends ChessPiece {
     }
 
     @Override
-    public List<Coordinate> getPlayableMoves() {
+    public List<ChessDirection> getPlayableMoves() {
         return List.of();
     }
 }

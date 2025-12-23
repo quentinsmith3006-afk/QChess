@@ -2,6 +2,8 @@ package qchess.chess.create;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import qchess.chess.create.direction.ChessDirection;
+import qchess.chess.create.direction.PieceVector;
 import qchess.chess.logic.ChessPosition;
 
 import java.util.List;
@@ -85,7 +87,7 @@ public abstract class ChessPiece {
         this.coordinate.col = col;
     }
 
-    public abstract List<Coordinate> getPlayableMoves();
+    public abstract List<ChessDirection> getPlayableMoves();
 
     @Override
     public String toString() {

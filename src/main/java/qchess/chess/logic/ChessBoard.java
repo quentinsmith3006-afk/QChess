@@ -16,6 +16,8 @@ import qchess.chess.logic.event.MovementEvent;
 import java.util.ArrayList;
 
 public class ChessBoard extends GridPane {
+    public static final int width = 8;
+    public static final int height = 8;
     public ChessPosition[] chessPositions;
     public ArrayList<ChessPiece> chessPieces;
     protected Team playerTeam = Team.WHITE;
@@ -68,11 +70,7 @@ public class ChessBoard extends GridPane {
 
         for (ChessPiece chessPiece : chessPieces) {
             ChessPosition chessPosition = chessPiece.getPosition();
-            if (chessPiece.getTeam() == playerTeam) {
-                chessPosition.setDisable(false);
-            } else {
-                chessPosition.setDisable(true);
-            }
+            chessPosition.setDisable(chessPiece.getTeam() != playerTeam);
         }
     }
 
