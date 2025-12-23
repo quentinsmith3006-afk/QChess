@@ -4,13 +4,12 @@ import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.annotations.Xray;
+import qchess.chess.create.direction.ChessDirection;
+import qchess.chess.create.direction.PieceVector;
 import qchess.chess.logic.event.CaptureEvent;
 import qchess.chess.logic.event.MovementEvent;
 
-import java.lang.Math;
-
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 class Move {
     public static ChessBoard chessBoard;
@@ -19,6 +18,9 @@ class Move {
     public static Comparator<Coordinate> coordComparator;
 
     static void positionClick(ChessPosition position) {
+
+        System.out.println("Hello");
+
         ChessPiece chessPiece = position.getChessPiece();
         ChessPosition[] chessPositions = chessBoard.getChessPositions();
 
@@ -29,6 +31,8 @@ class Move {
             disablePastPlayablePositions();
             return;
         }
+
+        System.out.println("Hello2");
 
         // Capturing
         if (pastChessPosition != null ) {
@@ -48,35 +52,31 @@ class Move {
 
         disablePastPlayablePositions();
 
+        List<ChessDirection> pieceVectors = ChessAnnotation.applyAnnotations(chessPiece);
+
         // Playable Squares Refiner
-        int totalPlayableMoves = chessPiece.getPlayableMoves().size();
+        int totalPlayableMoves = getTotalPlayableMoves(pieceVectors); // Change to consider vectorization
         pastPositions = new ChessPosition[totalPlayableMoves];
         pastChessPosition = position;
 
-        List<Coordinate> playableMoves = ChessAnnotation.applyAnnotations(chessPiece, ChessAnnotation.chessAnnotations);
-
-        sort(playableMoves, position.coordinate);
-
-        for (Coordinate coordinate : playableMoves) {
-            System.out.println(coordinate + " SORTED COORDS");
-        }
-
         int i = 0;
         if (position.getChessPiece() != null) {
-            for (Coordinate coord : playableMoves) {
-                ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
+            for (ChessDirection direction : pieceVectors) {
+                for (Coordinate coord : direction) {
+                    ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
 
-                System.out.println(posOfCoord.getChessPiece() + " " + posOfCoord.coordinate);
-                boolean posHasChessPiece = posOfCoord.getChessPiece() != null;
-                System.out.println(ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class));
-                if (posHasChessPiece && !ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
-                    break;
+                    System.out.println(posOfCoord.getChessPiece() + " " + posOfCoord.coordinate);
+                    boolean posHasChessPiece = posOfCoord.getChessPiece() != null;
+                    System.out.println(ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class));
+                    if (posHasChessPiece && !ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
+                        break;
+                    }
+
+                    System.out.println(posOfCoord.coordinate);
+                    posOfCoord.setDisable(false);
+
+                    pastPositions[i++] = posOfCoord;
                 }
-
-                System.out.println(posOfCoord.coordinate);
-                posOfCoord.setDisable(false);
-
-                pastPositions[i++] = posOfCoord;
             }
         }
     }
@@ -91,6 +91,15 @@ class Move {
             }
         }
     }
+
+    private static int getTotalPlayableMoves(List<ChessDirection> directions) {
+        int count = 0;
+        for (ChessDirection direction : directions) {
+            count += direction.getSize();
+        }
+
+        return count;
+    };
 
     public static void move(ChessPosition pastPos, ChessPosition futurePos) {
         if (futurePos.getChessPiece() != null) {
@@ -134,26 +143,8 @@ class Move {
         pos.setDisable(true);
     }
 
-    private static void sort(List<Coordinate> coords, Coordinate focal) {
-        for (int i = 0; i < coords.size(); i++) {
-            int smallestCoordIndex = i;
-            for (int j = i + 1; j < coords.size(); j++) {
-                if (distance(focal, coords.get(smallestCoordIndex)) > distance(focal, coords.get(j))) {
-                    smallestCoordIndex = j;
-                }
-            }
-
-            Coordinate temp = coords.get(i);
-            coords.set(i, coords.get(smallestCoordIndex));
-            coords.set(smallestCoordIndex, temp);
-        }
-    }
-
-    private static int distance(Coordinate original, Coordinate other) {
-        int originalRow = original.getRow();
-        int originalCol = original.getCol();
-        int otherRow = other.getRow();
-        int otherCol = other.getCol();
-        return Math.abs(originalRow - otherRow) + Math.abs(originalCol - otherCol);
+    private static List<ChessDirection> removeDuplicates(List<ChessDirection> coords) {
+        coords =  new ArrayList<>(new LinkedHashSet<>(coords));
+        return coords;
     }
 }

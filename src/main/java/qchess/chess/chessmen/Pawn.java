@@ -4,7 +4,9 @@ import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.annotations.HorizonalSymmetry;
-import qchess.chess.create.annotations.Xray;
+import qchess.chess.create.direction.ChessDirection;
+import qchess.chess.create.direction.PieceScalar;
+import qchess.chess.create.direction.PieceVector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +20,10 @@ public class Pawn extends ChessPiece {
     }
 
     @Override
-    public List<Coordinate> getPlayableMoves() {
-        ArrayList<Coordinate> moves = new ArrayList<>();
+    public List<ChessDirection> getPlayableMoves() {
+        ArrayList<ChessDirection> moves = new ArrayList<>();
+        PieceScalar scalar = new PieceScalar(this.coordinate);
+
         int row = getRow();
 
         if (row == 7 || row == 0) {
@@ -33,13 +37,14 @@ public class Pawn extends ChessPiece {
         if (isWhiteOnStart || isBlackOnStart) {
             int forwardTwo = (getBtnID() + 16 * momentum);
             Coordinate twoPlacesAway = new Coordinate(forwardTwo);
-            moves.add(twoPlacesAway);
+            scalar.addCoordinate(twoPlacesAway);
         }
 
         int forwardOne = (getBtnID() + 8 * momentum);
         Coordinate onePlaceAway = new Coordinate(forwardOne);
-        moves.add(onePlaceAway);
+        scalar.addCoordinate(onePlaceAway);
 
+        moves.add(scalar);
         return moves;
     }
 }

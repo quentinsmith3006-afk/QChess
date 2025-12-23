@@ -16,6 +16,8 @@ import qchess.chess.logic.event.MovementEvent;
 import java.util.ArrayList;
 
 public class ChessBoard extends GridPane {
+    public static final int width = 8;
+    public static final int height = 8;
     public ChessPosition[] chessPositions;
     public ArrayList<ChessPiece> chessPieces;
     protected Team playerTeam = Team.WHITE;

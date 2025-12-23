@@ -1,6 +1,7 @@
 package qchess.chess.create;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class Coordinate {
     int row;
@@ -72,13 +73,16 @@ public class Coordinate {
         return "Col: " + col + ", Row: " + row;
     }
 
-    public boolean equals(Coordinate coordinate) {
-        if (coordinate == null) {
-            throw new NullPointerException("coordinate is null");
-        }
-
-        return coordinate.getRow() == this.row || coordinate.getCol() == this.col;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Coordinate)) return false;
+        return this.col == ((Coordinate) obj).col && this.row == ((Coordinate) obj).col;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(row, col);
+    }
 
 }

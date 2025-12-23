@@ -1,19 +1,13 @@
 package qchess.chess;
 
 import javafx.application.Application;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import qchess.chess.chessmen.Pawn;
-import qchess.chess.create.Coordinate;
-import qchess.chess.create.Team;
 import qchess.chess.logic.ChessBoard;
 
 import java.io.IOException;
