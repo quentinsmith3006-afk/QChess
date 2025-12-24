@@ -1,66 +1,152 @@
 package qchess.chess.logic;
 
+import org.controlsfx.control.tableview2.filter.filtereditor.SouthFilter;
+import qchess.chess.chessmen.Pawn;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.annotations.Xray;
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.interfaces.SpecialCapture;
+import qchess.chess.create.interfaces.SpecialPiece;
+import qchess.chess.create.special.Enpassant;
 import qchess.chess.logic.event.CaptureEvent;
+import qchess.chess.logic.event.EnpassantEvent;
 import qchess.chess.logic.event.MovementEvent;
 
+import javax.swing.text.Position;
 import java.util.*;
 
 class Move {
     public static ChessBoard chessBoard;
-    public static ChessPosition[] pastPositions;
+    public static ArrayList<ChessPosition> pastPositions;
     public static ChessPosition pastChessPosition;
     public static Comparator<Coordinate> coordComparator;
 
     static void positionClick(ChessPosition position) {
-
-        System.out.println("Hello");
-
+        System.out.println("Hello1");
         ChessPiece chessPiece = position.getChessPiece();
         ChessPosition[] chessPositions = chessBoard.getChessPositions();
 
         // Normal movement
-        if (position.getChessPiece() == null) {
-            move(pastChessPosition, position);
-
+        if (chessPiece == null) {
+            System.out.println("MOVEMENT OCCURRED");
+            processNormalMovement(position, chessPositions);
             disablePastPlayablePositions();
             return;
         }
+        System.out.println("Hello3");
 
-        System.out.println("Hello2");
 
         // Capturing
-        if (pastChessPosition != null ) {
+        if (pastChessPosition != null) {
             ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
-            boolean hasChessPiece = pastChessPiece != null;
-
-            if (hasChessPiece) {
-                Team movedPieceTeam = position.getChessPiece().getTeam();
-                Team capturedPieceTeam = pastChessPiece.getTeam();
-
-                if (movedPieceTeam != capturedPieceTeam) {
-                    capture(pastChessPosition, position);
-                    return;
-                }
+            if (pastChessPiece != null && pastChessPiece.getTeam() != chessPiece.getTeam()) {
+                processCapture(position);
+                disablePastPlayablePositions();
+                return;
             }
         }
+        System.out.println("Hello4");
+
 
         disablePastPlayablePositions();
 
-        List<ChessDirection> pieceVectors = ChessAnnotation.applyAnnotations(chessPiece);
-
         // Playable Squares Refiner
-        int totalPlayableMoves = getTotalPlayableMoves(pieceVectors); // Change to consider vectorization
-        pastPositions = new ChessPosition[totalPlayableMoves];
+        playableSquaresRefinery(chessPiece, position, chessPositions);
+    }
+
+    private static void processNormalMovement(ChessPosition position, ChessPosition[] chessPositions) {
+        Class<? extends ChessPiece> chessPieceClass = pastChessPosition.getChessPiece().getClass();
+
+        int pastBtnId = pastChessPosition.coordinate.getBtnID();
+        int currentBtnId = position.coordinate.getBtnID();
+        boolean isPieceTwoAway = Math.abs(pastBtnId - currentBtnId) == 16;
+
+        removeSpecialPieces();
+
+        // Hard coded piece
+        if (chessPieceClass.equals(Pawn.class) && isPieceTwoAway) {
+            ChessPiece enpassPawn = pastChessPosition.getChessPiece();
+
+            int momentum = enpassPawn.getTeam() == Team.WHITE ? 1 : -1;
+            int newBtnId = enpassPawn.getBtnID() + ChessBoard.width * momentum;
+            ChessPosition onePlaceUnderPawn = chessPositions[newBtnId];
+            Coordinate onePlaceUnder = new Coordinate(newBtnId);
+
+            Enpassant enpassant = new Enpassant(onePlaceUnder, enpassPawn.getTeam());
+            enpassant.setPosition(chessBoard.getChessPositions()[newBtnId]);
+            chessBoard.chessPieces.add(enpassant);
+            onePlaceUnderPawn.setChessPiece(enpassant);
+        }
+
+        move(pastChessPosition, position);
+    }
+
+    private static void processCapture(ChessPosition position) {
+        ChessPiece movedChessPiece = pastChessPosition.getChessPiece();
+        boolean hasChessPiece = movedChessPiece != null;
+
+        if (hasChessPiece) {
+            ChessPiece capturedPiece = position.getChessPiece();
+
+            if (movedChessPiece instanceof SpecialCapture) {
+                System.out.println("Hello3");
+                List<ChessDirection> capturableSquares = ((SpecialCapture) movedChessPiece).getCapturableMoves();
+                for (ChessDirection vector : capturableSquares) {
+                    if (vector.contains(position.coordinate)) {
+                        System.out.println(capturedPiece + " CAPTURED");
+                        Coordinate coord = capturedPiece.getCoordinate();
+                        if (capturedPiece instanceof SpecialPiece) {
+                            int deltaRow = ((SpecialPiece) capturedPiece).deltaRow();
+                            int deltaCol = ((SpecialPiece) capturedPiece).deltaCol();
+
+                            int momentum = capturedPiece.getTeam() == Team.WHITE ? 1 : -1;
+
+                            int newRow = coord.getRow() + deltaRow * momentum;
+                            int newCol = coord.getCol() + deltaCol * momentum;
+                            coord = new Coordinate(newRow, newCol);
+                            ChessPosition newPosition = chessBoard.chessPositions[coord.getBtnID()];
+                            remove(newPosition, true);
+
+                            chessBoard.fireEvent(new EnpassantEvent(position.getChessPiece()));
+                        }
+                        capture(pastChessPosition, position);
+                    }
+                }
+            } else {
+                System.out.println(capturedPiece + " CAPTURED");
+
+                capture(pastChessPosition, position);
+            }
+
+            removeSpecialPieces();
+        }
+    }
+
+    private static void playableSquaresRefinery(ChessPiece chessPiece, ChessPosition position, ChessPosition[] chessPositions) {
+        pastPositions = new ArrayList<>();
+        List<ChessDirection> pieceVectors = ChessAnnotation.applyAnnotations(chessPiece);
         pastChessPosition = position;
 
-        int i = 0;
         if (position.getChessPiece() != null) {
+            if (chessPiece instanceof SpecialCapture) {
+                List<ChessDirection> capturableSquares = ((SpecialCapture)chessPiece).getCapturableMoves();
+                for (ChessDirection direction : capturableSquares) {
+                    for (Coordinate coord : direction) {
+                        ChessPosition posOfCord = chessPositions[coord.getBtnID()];
+                        if (posOfCord.getChessPiece() != null) {
+                            posOfCord.setDisable(false);
+                            pastPositions.add(posOfCord);
+                            if (!ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             for (ChessDirection direction : pieceVectors) {
                 for (Coordinate coord : direction) {
                     ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
@@ -75,8 +161,25 @@ class Move {
                     System.out.println(posOfCoord.coordinate);
                     posOfCoord.setDisable(false);
 
-                    pastPositions[i++] = posOfCoord;
+                    pastPositions.add(posOfCoord);
                 }
+            }
+        }
+    }
+
+    private static void removeSpecialPieces() {
+        System.out.println("Removing special pieces...");
+        for (int i = 0; i < chessBoard.chessPieces.size(); i++) {
+            ChessPiece chessPiece = chessBoard.chessPieces.get(i);
+
+            ChessPosition chessPosition = chessPiece.getPosition();
+            if (chessPiece instanceof SpecialPiece) {
+                System.out.println("Removing special piece " + chessPiece.getName());
+                chessPosition.setDisable(true);
+                chessPosition.setChessPiece(null);
+                chessPosition.setText("");
+                chessBoard.chessPieces.remove(chessPiece);
+                i--;
             }
         }
     }
@@ -91,15 +194,6 @@ class Move {
             }
         }
     }
-
-    private static int getTotalPlayableMoves(List<ChessDirection> directions) {
-        int count = 0;
-        for (ChessDirection direction : directions) {
-            count += direction.getSize();
-        }
-
-        return count;
-    };
 
     public static void move(ChessPosition pastPos, ChessPosition futurePos) {
         if (futurePos.getChessPiece() != null) {
@@ -119,18 +213,20 @@ class Move {
 
         remove(pastPos, false);
 
-        chessBoard.fireEvent(new MovementEvent());
+        chessBoard.fireEvent(new MovementEvent(chessPiece));
     }
 
     public static void capture(ChessPosition pastPos, ChessPosition futurePos) {
         if (futurePos.getChessPiece() == null) {
             throw new IllegalStateException("nothing to capture");
         }
+        ChessPiece capturedPiece = futurePos.getChessPiece();
+        ChessPiece instigator = pastPos.getChessPiece();
 
         remove(futurePos, true);
         move(pastPos, futurePos);
 
-        chessBoard.fireEvent(new CaptureEvent());
+        chessBoard.fireEvent(new CaptureEvent(instigator, capturedPiece));
     }
 
     public static void remove(ChessPosition pos, boolean capture) {

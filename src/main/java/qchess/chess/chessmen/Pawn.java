@@ -1,19 +1,21 @@
 package qchess.chess.chessmen;
 
+import org.jetbrains.annotations.NotNull;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.annotations.HorizonalSymmetry;
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceScalar;
-import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.interfaces.SpecialCapture;
+import qchess.chess.logic.ChessBoard;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @HorizonalSymmetry
-public class Pawn extends ChessPiece {
-    private boolean enpassant;
+public class Pawn extends ChessPiece implements SpecialCapture {
+    public boolean capturableByEnpassant;
 
     public Pawn(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WPawn.png","/ChessAssets/BPawn.png");
@@ -43,6 +45,20 @@ public class Pawn extends ChessPiece {
         int forwardOne = (getBtnID() + 8 * momentum);
         Coordinate onePlaceAway = new Coordinate(forwardOne);
         scalar.addCoordinate(onePlaceAway);
+
+        moves.add(scalar);
+        return moves;
+    }
+
+    @Override
+    public List<ChessDirection> getCapturableMoves() {
+        List<ChessDirection> moves = new ArrayList<>();
+        PieceScalar scalar = new PieceScalar(this.coordinate);
+
+        int momentum = team == Team.BLACK ? -1 : 1;
+
+        scalar.addCoordinate(new Coordinate(getRow() + momentum, getCol() + 1));
+        scalar.addCoordinate(new Coordinate(getRow() + momentum, getCol() - 1));
 
         moves.add(scalar);
         return moves;

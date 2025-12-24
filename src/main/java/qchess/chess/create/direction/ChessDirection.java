@@ -1,5 +1,6 @@
 package qchess.chess.create.direction;
 
+import org.jetbrains.annotations.NotNull;
 import qchess.chess.create.Coordinate;
 
 import java.util.ArrayList;
@@ -38,12 +39,16 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
         return Math.abs(originalRow - otherRow) + Math.abs(originalCol - otherCol);
     }
 
+    public boolean contains(Coordinate coord) {
+        return coordinates.contains(coord);
+    }
+
     public int getSize() {
         return coordinates.size();
     }
 
     @Override
-    public Iterator<Coordinate> iterator() {
+    public @NotNull Iterator<Coordinate> iterator() {
         return coordinates.iterator();
     }
 }

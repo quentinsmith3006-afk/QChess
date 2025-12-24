@@ -7,6 +7,7 @@ import qchess.chess.create.direction.ChessDirection;
 
 import java.util.List;
 
+
 public class Queen extends ChessPiece {
     public Queen(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WQueen.png","/ChessAssets/BQueen.png");

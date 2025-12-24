@@ -4,10 +4,12 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.layout.GridPane;
+import org.controlsfx.control.tableview2.filter.filtereditor.SouthFilter;
 import qchess.chess.chessmen.*;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
+import qchess.chess.create.interfaces.SpecialPiece;
 import qchess.chess.logic.event.CheckEvent;
 import qchess.chess.logic.event.CheckMateEvent;
 import qchess.chess.logic.event.ChessEvent;
@@ -90,10 +92,6 @@ public class ChessBoard extends GridPane {
         return chessPositions[btnID].getChessPiece();
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
     public void setOnPieceMovement(EventHandler<ChessEvent> movement) {
         this.addEventHandler(MovementEvent.MOVEMENT, movement);
     }
@@ -108,6 +106,14 @@ public class ChessBoard extends GridPane {
 
     public void setChessEvent(EventHandler<Event> movement) {
         this.addEventHandler(ChessEvent.ANY, movement);
+    }
+
+    public ChessPiece getChessPiece(Coordinate coordinate) {
+        return chessPositions[coordinate.getBtnID()].getChessPiece();
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     public static class Builder {
