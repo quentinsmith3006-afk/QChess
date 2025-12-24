@@ -4,6 +4,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceVector;
+import qchess.chess.logic.ChessBoard;
 import qchess.chess.logic.ChessPosition;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public abstract class ChessPiece {
         }
     }
 
-    public ChessPiece(Coordinate coordinate, Team team) {
+    public ChessPiece(ChessBoard chessBoard, Coordinate coordinate, Team team) {
         this(coordinate, team, null, null);
     }
 

@@ -30,7 +30,7 @@ public class PieceVector extends ChessDirection {
         if (deltaRow != 0 && deltaCol != 0) {
             int inf = ChessBoard.height * ChessBoard.width;
             int r = start.getRow() + deltaRow, c = start.getCol() + deltaCol;
-            int m = (magnitude != 0 ? magnitude : inf);
+            int m = (magnitude == 0 ? inf : magnitude);
 
             Function<Integer, Boolean> isRowInBounds = (g) -> g < ChessBoard.height && g >= 0;
             Function<Integer, Boolean> isColInBounds = (g) -> g < ChessBoard.width && g >= 0;

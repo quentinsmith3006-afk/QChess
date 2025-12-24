@@ -9,6 +9,8 @@ target/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.src/main/java/qchess.chess/ChessLauncher.java
+.src/main/java/qchess.chess/QChessApp.java
 *.iws
 *.iml
 *.ipr

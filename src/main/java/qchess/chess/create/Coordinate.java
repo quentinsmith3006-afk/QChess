@@ -1,5 +1,7 @@
 package qchess.chess.create;
 
+import qchess.chess.logic.ChessBoard;
+
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -16,16 +18,18 @@ public class Coordinate {
     static HashMap<String, Integer> ALGEBRAIC_MAP = algebraicMapInit();
 
     public Coordinate(int row, int col) {
-        algebraicName = String.format("%s%s", ALGEBRAIC[col], row);
+        if (col > ALGEBRAIC.length) {
+            algebraicName = String.format("%s%s", ALGEBRAIC[col], row);
+        }
         this.row = row;
         this.col = col;
-        this.btnID = row * 8 + col; // make sure this is correct
+        this.btnID = row * ChessBoard.width + col; // make sure this is correct
     }
 
     public Coordinate(int btnID) {
         this.btnID = btnID;
-        this.row = btnID / 8;
-        this.col = btnID % 8;
+        this.row = btnID / ChessBoard.height;
+        this.col = btnID % ChessBoard.width;
     }
 
     public Coordinate(String algebraicNotation) {
@@ -77,12 +81,11 @@ public class Coordinate {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Coordinate)) return false;
-        return this.col == ((Coordinate) obj).col && this.row == ((Coordinate) obj).col;
+        return this.col == ((Coordinate) obj).col && this.row == ((Coordinate) obj).row;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(row, col);
     }
-
 }
