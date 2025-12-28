@@ -115,15 +115,6 @@ public abstract class ChessPiece {
         this.coordinate.col = col;
     }
 
-    public boolean isSynced() {
-        return synced;
-    }
-
-    // Synced refers to whether this pieces playables are memoized
-    public void setSynced(boolean synced) {
-        this.synced = synced;
-    }
-
     public abstract List<ChessDirection> getRawPlayableDirections();
 
     @Override

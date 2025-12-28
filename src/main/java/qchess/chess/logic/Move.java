@@ -22,7 +22,6 @@ class Move {
     public static ChessBoard chessBoard;
     public static ArrayList<ChessPosition> pastPositions;
     public static ChessPosition pastChessPosition;
-    public static HashMap<ChessPiece, ArrayList<ChessPosition>> memoizedPastPositions = new HashMap<>();;
 
     static void positionClick(ChessPosition clickedPosition) {
         ChessPiece chessPiece = clickedPosition.getChessPiece();
@@ -30,13 +29,7 @@ class Move {
 
         // Normal movement
         if (chessPiece == null) {
-            ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
-
-            if (pastChessPiece != null) {
-                pastChessPiece.setSynced(false);
-                disablePastPlayablePositions2(pastChessPiece);
-            }
-
+            disablePastPlayablePositions();
             processNormalMovement(clickedPosition, chessPositions);
             return;
         }
@@ -45,15 +38,14 @@ class Move {
         if (pastChessPosition != null) {
             ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
             if (pastChessPiece != null && pastChessPiece.getTeam() != chessPiece.getTeam()) {
-                pastChessPiece.setSynced(false);
                 processCapture(clickedPosition);
-                disablePastPlayablePositions2(pastChessPiece);
+                disablePastPlayablePositions();
                 return;
             }
         }
 
         if (pastChessPosition != null) {
-            disablePastPlayablePositions2(pastChessPosition.chessPiece);
+            disablePastPlayablePositions();
         }
 
         // Playable Squares Refiner
@@ -139,19 +131,6 @@ class Move {
         pastPositions = new ArrayList<>();
         pastChessPosition = position;
 
-        System.out.println(memoizedPastPositions.size() + " " + memoizedPastPositions.containsKey(chessPiece) + " " + chessPiece.isSynced());
-        if (memoizedPastPositions.containsKey(chessPiece) && chessPiece.isSynced()) {
-            System.out.println("MEMOIZED");
-            for (ChessPosition chessPosition : memoizedPastPositions.get(chessPiece)) {
-                chessPosition.setDisable(false);
-
-                if (chessPosition.getChessPiece() != null && !ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
-                    break;
-                }
-            }
-            return;
-        }
-
         List<ChessDirection> pieceVectors = new ArrayList<>(new LinkedHashSet<>(chessPiece.getPlayableDirections()));
 
         if (position.getChessPiece() != null && chessBoard.castlingAllowed) {
@@ -229,9 +208,6 @@ class Move {
                 }
             }
         }
-
-        chessPiece.setSynced(true);
-        memoizedPastPositions.put(chessPiece, new ArrayList<>(pastPositions));
     }
 
     private static void createEnpassantPiece(ChessPosition[] chessPositions) {
@@ -260,21 +236,6 @@ class Move {
                 chessPosition.setText("");
                 chessBoard.chessPieces.remove(chessPiece);
                 i--;
-            }
-        }
-    }
-
-    private static void disablePastPlayablePositions2(ChessPiece chessPiece) {
-        if (memoizedPastPositions.containsKey(chessPiece)) {
-            for (ChessPosition chessPosition : memoizedPastPositions.get(chessPiece)) {
-                if (chessPosition.getChessPiece() != null) {
-                    // prevents disabling of same-team pieces during memoization
-                    if (chessPiece.getTeam() != chessPosition.getChessPiece().getTeam()) {
-                        chessPosition.setDisable(true);
-                    }
-                } else {
-                    chessPosition.setDisable(true);
-                }
             }
         }
     }
