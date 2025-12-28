@@ -30,8 +30,8 @@ public class QChessApp extends Application {
         Image img = new Image("galaxybackground.png");
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
-                .emptyChessBoard()
-                .add(new TempChessman(new Coordinate(3, 3), Team.BLACK))
+                .normalChessBoard()
+                .disableAutoTeamSwitch()
                 .build()
         ;
 

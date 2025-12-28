@@ -18,6 +18,7 @@ public abstract class ChessPiece {
     protected ImageView graphic;
     protected int pieceValue;
     protected boolean hasMoved = false;
+    protected boolean synced = false;
 
     public ChessPiece(Coordinate coordinate, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
         this.startCoordinate = coordinate;
@@ -112,6 +113,15 @@ public abstract class ChessPiece {
 
     public void setCol(int col) {
         this.coordinate.col = col;
+    }
+
+    public boolean isSynced() {
+        return synced;
+    }
+
+    // Synced refers to whether this pieces playables are memoized
+    public void setSynced(boolean synced) {
+        this.synced = synced;
     }
 
     public abstract List<ChessDirection> getRawPlayableDirections();

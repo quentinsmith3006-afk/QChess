@@ -1,8 +1,0 @@
-Upon vertical reflection, the reflection doesn't work if the bottom pieces have pieces on them.
-
-Pawns don't move when they are on the first row. WHite pawn should be able to move at 0,0 nad black pawn at 0,7 etc
-but not vice versa
-
-Chessboard still switches teams and is active with the promotion menu active
-
-SpecialPieces are seen

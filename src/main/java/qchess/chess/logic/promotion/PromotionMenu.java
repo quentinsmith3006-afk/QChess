@@ -7,7 +7,6 @@ import javafx.stage.Stage;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.interfaces.Promotable;
 import qchess.chess.logic.ChessBoard;
-import qchess.chess.logic.ChessPosition;
 
 public class PromotionMenu extends HBox {
     PromotionLogic promotionLogic;

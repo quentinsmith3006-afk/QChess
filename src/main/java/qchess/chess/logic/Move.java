@@ -22,6 +22,7 @@ class Move {
     public static ChessBoard chessBoard;
     public static ArrayList<ChessPosition> pastPositions;
     public static ChessPosition pastChessPosition;
+    public static HashMap<ChessPiece, ArrayList<ChessPosition>> memoizedPastPositions = new HashMap<>();;
 
     static void positionClick(ChessPosition clickedPosition) {
         ChessPiece chessPiece = clickedPosition.getChessPiece();
@@ -29,8 +30,14 @@ class Move {
 
         // Normal movement
         if (chessPiece == null) {
+            ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
+
+            if (pastChessPiece != null) {
+                pastChessPiece.setSynced(false);
+                disablePastPlayablePositions2(pastChessPiece);
+            }
+
             processNormalMovement(clickedPosition, chessPositions);
-            disablePastPlayablePositions(null);
             return;
         }
 
@@ -38,13 +45,16 @@ class Move {
         if (pastChessPosition != null) {
             ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
             if (pastChessPiece != null && pastChessPiece.getTeam() != chessPiece.getTeam()) {
+                pastChessPiece.setSynced(false);
                 processCapture(clickedPosition);
-                disablePastPlayablePositions(chessPiece.getTeam());
+                disablePastPlayablePositions2(pastChessPiece);
                 return;
             }
         }
 
-        disablePastPlayablePositions(chessPiece.getTeam());
+        if (pastChessPosition != null) {
+            disablePastPlayablePositions2(pastChessPosition.chessPiece);
+        }
 
         // Playable Squares Refiner
         playableSquaresRefinery(chessPiece, clickedPosition, chessPositions);
@@ -127,9 +137,22 @@ class Move {
 
     private static void playableSquaresRefinery(ChessPiece chessPiece, ChessPosition position, ChessPosition[] chessPositions) {
         pastPositions = new ArrayList<>();
-        List<ChessDirection> pieceVectors = new ArrayList<>(new LinkedHashSet<>(chessPiece.getPlayableDirections()));
-
         pastChessPosition = position;
+
+        System.out.println(memoizedPastPositions.size() + " " + memoizedPastPositions.containsKey(chessPiece) + " " + chessPiece.isSynced());
+        if (memoizedPastPositions.containsKey(chessPiece) && chessPiece.isSynced()) {
+            System.out.println("MEMOIZED");
+            for (ChessPosition chessPosition : memoizedPastPositions.get(chessPiece)) {
+                chessPosition.setDisable(false);
+
+                if (chessPosition.getChessPiece() != null && !ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
+                    break;
+                }
+            }
+            return;
+        }
+
+        List<ChessDirection> pieceVectors = new ArrayList<>(new LinkedHashSet<>(chessPiece.getPlayableDirections()));
 
         if (position.getChessPiece() != null && chessBoard.castlingAllowed) {
             if (chessPiece instanceof Castlable castlablePiece) {
@@ -142,7 +165,6 @@ class Move {
                             boolean vectorLineSegmentEmpty = false;
 
                             for (Coordinate coordinate : castleVector) {
-
                                 if (coordinate.equals(castleVector.getTerminalPoint())) {
                                     vectorLineSegmentEmpty = true;
                                     break;
@@ -186,12 +208,18 @@ class Move {
             for (ChessDirection direction : pieceVectors) {
                 for (Coordinate coord : direction) {
                     ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
+                    boolean posHasChessPiece = posOfCoord.getChessPiece() != null;
 
-                    posOfCoord.setDisable(false);
+                    if (chessPiece instanceof SpecifyCapture) { // Fixes pawns showing what is directly in front of them
+                        if (!posHasChessPiece) {
+                            posOfCoord.setDisable(false);
+                        }
+                    } else {
+                        posOfCoord.setDisable(false);
+                    }
 
                     pastPositions.add(posOfCoord);
 
-                    boolean posHasChessPiece = posOfCoord.getChessPiece() != null;
                     if (posHasChessPiece && !ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
                         boolean chessPieceIsSpecialPiece = posOfCoord.getChessPiece() instanceof SpecialPiece;
                         if (!chessPieceIsSpecialPiece) {
@@ -201,6 +229,9 @@ class Move {
                 }
             }
         }
+
+        chessPiece.setSynced(true);
+        memoizedPastPositions.put(chessPiece, new ArrayList<>(pastPositions));
     }
 
     private static void createEnpassantPiece(ChessPosition[] chessPositions) {
@@ -233,16 +264,32 @@ class Move {
         }
     }
 
-    private static void disablePastPlayablePositions(Team pieceTeam) {
+    private static void disablePastPlayablePositions2(ChessPiece chessPiece) {
+        if (memoizedPastPositions.containsKey(chessPiece)) {
+            for (ChessPosition chessPosition : memoizedPastPositions.get(chessPiece)) {
+                if (chessPosition.getChessPiece() != null) {
+                    // prevents disabling of same-team pieces during memoization
+                    if (chessPiece.getTeam() != chessPosition.getChessPiece().getTeam()) {
+                        chessPosition.setDisable(true);
+                    }
+                } else {
+                    chessPosition.setDisable(true);
+                }
+            }
+        }
+    }
+
+    private static void disablePastPlayablePositions() {
         if (pastPositions != null) {
             for (ChessPosition pos : pastPositions) {
                 boolean posNotNull = pos != null;
 
                 if (posNotNull) {
                     boolean posHasChessPiece = pos.getChessPiece() != null;
-                    boolean pieceTeamNull = pieceTeam == null;
                     boolean pieceTeamNotCurrentTeam;
-                    if (!pieceTeamNull) {
+
+                    if (posHasChessPiece && pos.getChessPiece().getTeam() != null) {
+                        Team pieceTeam = pos.getChessPiece().getTeam();
                         pieceTeamNotCurrentTeam = !pieceTeam.name().equals(chessBoard.playerTeam.name());
                     } else {
                         pieceTeamNotCurrentTeam = false;
@@ -262,18 +309,14 @@ class Move {
         }
 
         ChessPiece chessPiece = pastPos.getChessPiece();
-        System.out.println(chessPiece);
-        System.out.println(chessPiece.getGraphic());
 
         futurePos.setChessPiece(chessPiece);
         if (chessPiece.getGraphic() == null) {
             futurePos.setText(pastPos.getText());
         } else {
-            System.out.println("I set Graphic");
             futurePos.setText("");
             futurePos.setGraphic(chessPiece.getGraphic());
         }
-        System.out.println(futurePos.getGraphic() + " futurePosGraphic");
 
         if (futurePos.getChessPiece().getTeam() == chessBoard.playerTeam) {
             futurePos.setDisable(false);
@@ -287,45 +330,48 @@ class Move {
 
         // Promotion
         if (chessPiece instanceof Promotable promotablePiece) {
-            System.out.println(chessPiece + " " + chessPiece.getTeam());
-            int rowToPromote;
-            int colToPromote;
-            if (chessPiece.getTeam() == Team.BLACK) {
-                rowToPromote = promotablePiece.getBlackPromotionSquares().row();
-                colToPromote = promotablePiece.getBlackPromotionSquares().col();
-            } else {
-                rowToPromote = promotablePiece.getWhitePromotionSquares().row();
-                colToPromote = promotablePiece.getWhitePromotionSquares().col();
-            }
-            boolean rowAbsent = rowToPromote == -1;
-            boolean colAbsent = colToPromote == -1;
-
-            System.out.println(rowToPromote + " " + colToPromote + "  " + chessPiece.getRow() + " " + chessPiece.getCol());
-
-            if (!rowAbsent && !colAbsent) {
-                boolean pieceRowOnPromote = chessPiece.getCoordinate().getRow() == rowToPromote;
-                boolean pieceColOnPromote = chessPiece.getCoordinate().getCol() == colToPromote;
-                if (pieceRowOnPromote && pieceColOnPromote) {
-                    chessBoard.fireEvent(new PromotionEvent(PromotionEvent.PROMOTION, chessPiece, promotablePiece));
-                }
-            } else if (rowAbsent) {
-                boolean pieceColOnPromote = chessPiece.getCoordinate().getCol() == colToPromote;
-                if (pieceColOnPromote) {
-                    chessBoard.fireEvent(new PromotionEvent(PromotionEvent.PROMOTION, chessPiece, promotablePiece));
-                }
-            } else {
-                System.out.println("Hi");
-                boolean pieceRowOnPromote = chessPiece.getCoordinate().getRow() == rowToPromote;
-                if (pieceRowOnPromote) {
-                    chessBoard.fireEvent(new PromotionEvent(PromotionEvent.PROMOTION, chessPiece, promotablePiece));
-                }
-            }
+            handlePromotion(chessPiece, promotablePiece);
         }
+
+        // Check
+
 
         if (chessPiece.getTeam() == chessBoard.playerTeam) {
             chessBoard.fireEvent(new MovementEvent(chessPiece));
         }
         chessBoard.enableChessPieces();
+    }
+
+    public static void handlePromotion(ChessPiece chessPiece, Promotable promotablePiece) {
+        int rowToPromote;
+        int colToPromote;
+        if (chessPiece.getTeam() == Team.BLACK) {
+            rowToPromote = promotablePiece.getBlackPromotionSquares().row();
+            colToPromote = promotablePiece.getBlackPromotionSquares().col();
+        } else {
+            rowToPromote = promotablePiece.getWhitePromotionSquares().row();
+            colToPromote = promotablePiece.getWhitePromotionSquares().col();
+        }
+        boolean rowAbsent = rowToPromote == -1;
+        boolean colAbsent = colToPromote == -1;
+
+        if (!rowAbsent && !colAbsent) {
+            boolean pieceRowOnPromote = chessPiece.getCoordinate().getRow() == rowToPromote;
+            boolean pieceColOnPromote = chessPiece.getCoordinate().getCol() == colToPromote;
+            if (pieceRowOnPromote && pieceColOnPromote) {
+                chessBoard.fireEvent(new PromotionEvent(PromotionEvent.PROMOTION, chessPiece, promotablePiece));
+            }
+        } else if (rowAbsent) {
+            boolean pieceColOnPromote = chessPiece.getCoordinate().getCol() == colToPromote;
+            if (pieceColOnPromote) {
+                chessBoard.fireEvent(new PromotionEvent(PromotionEvent.PROMOTION, chessPiece, promotablePiece));
+            }
+        } else {
+            boolean pieceRowOnPromote = chessPiece.getCoordinate().getRow() == rowToPromote;
+            if (pieceRowOnPromote) {
+                chessBoard.fireEvent(new PromotionEvent(PromotionEvent.PROMOTION, chessPiece, promotablePiece));
+            }
+        }
     }
 
     public static void capture(ChessPosition pastPos, ChessPosition futurePos) {
