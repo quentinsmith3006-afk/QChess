@@ -15,7 +15,7 @@ public class Enpassant extends ChessPiece implements SpecialPiece {
     }
 
     @Override
-    public List<ChessDirection> getPlayableMoves() {
+    public List<ChessDirection> getRawPlayableDirections() {
         return List.of();
     }
 

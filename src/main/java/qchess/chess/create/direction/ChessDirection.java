@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import qchess.chess.create.Coordinate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,12 +32,16 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
         }
     }
 
-    public int distance(Coordinate other) {
-        int originalRow = start.getRow();
-        int originalCol = start.getCol();
+    public static int distance(Coordinate focal, Coordinate other) {
+        int originalRow = focal.getRow();
+        int originalCol = focal.getCol();
         int otherRow = other.getRow();
         int otherCol = other.getCol();
         return Math.abs(originalRow - otherRow) + Math.abs(originalCol - otherCol);
+    }
+
+    public int distance(Coordinate other) {
+        return distance(start, other);
     }
 
     public boolean contains(Coordinate coord) {
@@ -46,6 +51,16 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
     public int getSize() {
         return coordinates.size();
     }
+
+    public static void addAll(List<ChessDirection> directions, ChessDirection... chessDirections) {
+        directions.addAll(Arrays.asList(chessDirections));
+    }
+
+    public abstract ChessDirection inverse();
+
+    public abstract List<ChessDirection> horizontalReflection();
+
+    public abstract List<ChessDirection> verticalReflection();
 
     @Override
     public @NotNull Iterator<Coordinate> iterator() {

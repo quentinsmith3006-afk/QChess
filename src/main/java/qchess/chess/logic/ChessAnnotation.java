@@ -1,17 +1,17 @@
 package qchess.chess.logic;
 
 import qchess.chess.create.ChessPiece;
-import qchess.chess.create.annotations.HorizonalSymmetry;
-import qchess.chess.create.annotations.VerticalSymmetry;
+import qchess.chess.create.exceptions.ChessPieceCyclicalDependencyException;
+import qchess.chess.create.piecemodifiers.HorizonalSymmetry;
+import qchess.chess.create.piecemodifiers.VerticalSymmetry;
 import qchess.chess.create.direction.ChessDirection;
-import qchess.chess.create.direction.PieceVector;
-import qchess.chess.create.interfaces.SymmetryOperation;
+import qchess.chess.create.interfaces.ChessOperation;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
-public record ChessAnnotation(Class<? extends Annotation> annotate, SymmetryOperation<ChessDirection> operation) {
+public record ChessAnnotation(Class<? extends Annotation> annotate, ChessOperation<ChessDirection> operation) {
     static ArrayList<ChessAnnotation> chessAnnotations;
 
     void applyAnnotation(ChessPiece chessPiece, List<ChessDirection> playableMoves) {
@@ -20,44 +20,32 @@ public record ChessAnnotation(Class<? extends Annotation> annotate, SymmetryOper
         Annotation anno = chessPiece.getClass().getAnnotation(annotate);
 
         for (Annotation annotation : annotations) {
-            if (anno.equals(annotation)) {
-                this.operation.operate(playableMoves);
+            if (anno != null && anno.equals(annotation)) {
+                this.operation.operate(chessPiece, playableMoves);
             }
         }
     }
 
-    static List<ChessDirection> applyAnnotations(ChessPiece chessPiece) {
-        List<ChessDirection> playableMoves = chessPiece.getPlayableMoves();
+    public static List<ChessDirection> applyAnnotations(ChessPiece chessPiece) {
+        try {
+            List<ChessDirection> playableMoves = chessPiece.getRawPlayableDirections();
 
-        for (ChessAnnotation annotation : chessAnnotations) {
-            annotation.applyAnnotation(chessPiece, playableMoves);
+            for (ChessAnnotation annotation : chessAnnotations) {
+                annotation.applyAnnotation(chessPiece, playableMoves);
+            }
+
+            return playableMoves;
+        } catch (StackOverflowError e) {
+            throw new ChessPieceCyclicalDependencyException(chessPiece, chessPiece.getClass() + " has a cyclical dependency with another chess piece!");
         }
-
-        return playableMoves;
-    }
-
-    static void chessAnnotationsInit() {
-        chessAnnotations = new ArrayList<ChessAnnotation>();
-
-        SymmetryOperation<ChessDirection> horOperation = (List<ChessDirection> playableMoves) -> {
-            System.out.println("chessAnnotationsInit");
-        };
-        ChessAnnotation horizontalSym = new ChessAnnotation(HorizonalSymmetry.class, horOperation);
-
-        SymmetryOperation<ChessDirection> verOperation = (List<ChessDirection> playableMoves) -> {
-            System.out.println("chessAnnotationsInit");
-        };
-        ChessAnnotation verticalSym = new ChessAnnotation(VerticalSymmetry.class, verOperation);
-
-        addAllAnnotations(horizontalSym, verticalSym);
     }
 
     public static void addAnnotation(ChessAnnotation chessAnnotation) {
         chessAnnotations.add(chessAnnotation);
     }
 
-    public static void addAllAnnotations(ChessAnnotation... chessAnnotation) {
-        for (ChessAnnotation annotation : chessAnnotations) {
+    public static void addAllAnnotations(ChessAnnotation... chessAnnotationVarArg) {
+        for (ChessAnnotation annotation : chessAnnotationVarArg) {
             addAnnotation(annotation);
         }
     }
@@ -71,5 +59,40 @@ public record ChessAnnotation(Class<? extends Annotation> annotate, SymmetryOper
 
     public static boolean hasAnnotation(Class<? extends ChessPiece> clazz, Class<? extends Annotation> annotation) {
         return clazz.isAnnotationPresent(annotation);
+    }
+
+    static void chessAnnotationsInit() {
+        chessAnnotations = new ArrayList<ChessAnnotation>();
+
+        ChessAnnotation horizontalSym = initHorizontalAnnotation();
+
+        ChessAnnotation verticalSym = initVerticalAnnotation();
+
+        addAllAnnotations(horizontalSym, verticalSym);
+    }
+
+    private static ChessAnnotation initHorizontalAnnotation() {
+        ChessOperation<ChessDirection> horOperation = (ChessPiece chessPiece, List<ChessDirection> playableMoves) -> {
+
+            List<ChessDirection> reflectedMoves = new ArrayList<>();
+            for (ChessDirection direction : playableMoves) {
+                reflectedMoves.addAll(direction.horizontalReflection());
+            }
+
+            playableMoves.addAll(reflectedMoves);
+        };
+        return new ChessAnnotation(HorizonalSymmetry.class, horOperation);
+    }
+
+    private static ChessAnnotation initVerticalAnnotation() {
+        ChessOperation<ChessDirection> verOperation = (ChessPiece chessPiece, List<ChessDirection> playableMoves) -> {
+            List<ChessDirection> reflectedMoves = new ArrayList<>();
+            for (ChessDirection direction : playableMoves) {
+                reflectedMoves.addAll(direction.verticalReflection());
+            }
+
+            playableMoves.addAll(reflectedMoves);
+        };
+        return new ChessAnnotation(VerticalSymmetry.class, verOperation);
     }
 }

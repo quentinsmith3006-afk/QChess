@@ -5,8 +5,8 @@ import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.direction.ChessDirection;
 
+import java.util.ArrayList;
 import java.util.List;
-
 
 public class Queen extends ChessPiece {
     public Queen(Coordinate position, Team team) {
@@ -15,7 +15,15 @@ public class Queen extends ChessPiece {
     }
 
     @Override
-    public List<ChessDirection> getPlayableMoves() {
-        return List.of();
+    public List<ChessDirection> getRawPlayableDirections() {
+        List<ChessDirection> moves = new ArrayList<>();
+
+        Rook rook = new Rook(this.coordinate, this.team);
+        Bishop bishop = new Bishop(this.coordinate, this.team);
+
+        moves.addAll(rook.getPlayableDirections());
+        moves.addAll(bishop.getPlayableDirections());
+
+        return moves;
     }
 }

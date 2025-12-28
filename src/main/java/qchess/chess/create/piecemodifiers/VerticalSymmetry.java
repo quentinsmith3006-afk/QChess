@@ -1,4 +1,4 @@
-package qchess.chess.create.annotations;
+package qchess.chess.create.piecemodifiers;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -18,7 +18,7 @@ public class Coordinate {
     static HashMap<String, Integer> ALGEBRAIC_MAP = algebraicMapInit();
 
     public Coordinate(int row, int col) {
-        if (col > ALGEBRAIC.length) {
+        if (col < ALGEBRAIC.length && col >= 0) {
             algebraicName = String.format("%s%s", ALGEBRAIC[col], row);
         }
         this.row = row;

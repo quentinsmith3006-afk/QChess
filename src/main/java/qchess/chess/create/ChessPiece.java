@@ -3,8 +3,7 @@ package qchess.chess.create;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import qchess.chess.create.direction.ChessDirection;
-import qchess.chess.create.direction.PieceVector;
-import qchess.chess.logic.ChessBoard;
+import qchess.chess.logic.ChessAnnotation;
 import qchess.chess.logic.ChessPosition;
 
 import java.util.List;
@@ -12,13 +11,16 @@ import java.util.List;
 public abstract class ChessPiece {
     protected ChessPosition position;
     protected Coordinate coordinate;
+    protected final Coordinate startCoordinate;
     protected boolean pinned;
     protected String name;
     protected Team team;
     protected ImageView graphic;
     protected int pieceValue;
+    protected boolean hasMoved = false;
 
     public ChessPiece(Coordinate coordinate, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
+        this.startCoordinate = coordinate;
         this.coordinate = coordinate;
         this.name = this.getClass().getSimpleName();
         this.team = team;
@@ -36,14 +38,38 @@ public abstract class ChessPiece {
                 this.graphic = new ImageView(img);
             }
 
-            this.graphic.setFitHeight(50);
-            this.graphic.setFitWidth(50);
+            assert this.graphic != null;
+            this.graphic.setFitHeight(40);
+            this.graphic.setFitWidth(40);
 
         }
     }
 
-    public ChessPiece(ChessBoard chessBoard, Coordinate coordinate, Team team) {
+    public ChessPiece(Coordinate coordinate, Team team) {
         this(coordinate, team, null, null);
+    }
+
+    public List<ChessDirection> getPlayableDirections() {
+        List<ChessDirection> moves = null;
+        try {
+            moves = ChessAnnotation.applyAnnotations(this);
+        } catch (NullPointerException npe) {
+            throw new IllegalStateException("Either there is no chessboard or chess piece is null");
+        }
+
+        return moves;
+    }
+
+    public boolean isOnStart() {
+        return startCoordinate.equals(coordinate);
+    }
+
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+
+    public void wasMoved() {
+        this.hasMoved = true;
     }
 
     public Coordinate getCoordinate() {return coordinate;}
@@ -88,7 +114,7 @@ public abstract class ChessPiece {
         this.coordinate.col = col;
     }
 
-    public abstract List<ChessDirection> getPlayableMoves();
+    public abstract List<ChessDirection> getRawPlayableDirections();
 
     @Override
     public String toString() {
