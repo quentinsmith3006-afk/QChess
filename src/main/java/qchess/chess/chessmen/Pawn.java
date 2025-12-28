@@ -1,28 +1,28 @@
 package qchess.chess.chessmen;
 
-import org.jetbrains.annotations.NotNull;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
-import qchess.chess.create.annotations.HorizonalSymmetry;
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceScalar;
-import qchess.chess.create.interfaces.SpecialCapture;
-import qchess.chess.logic.ChessBoard;
+import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.interfaces.Enpassantable;
+import qchess.chess.create.interfaces.Promotable;
+import qchess.chess.create.interfaces.SpecifyCapture;
+import qchess.chess.create.special.Enpassant;
+import qchess.chess.logic.promotion.PromotionSquares;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@HorizonalSymmetry
-public class Pawn extends ChessPiece implements SpecialCapture {
-    public boolean capturableByEnpassant;
+public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpassantable {
 
     public Pawn(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WPawn.png","/ChessAssets/BPawn.png");
     }
 
     @Override
-    public List<ChessDirection> getPlayableMoves() {
+    public List<ChessDirection> getRawPlayableDirections() {
         ArrayList<ChessDirection> moves = new ArrayList<>();
         PieceScalar scalar = new PieceScalar(this.coordinate);
 
@@ -47,20 +47,41 @@ public class Pawn extends ChessPiece implements SpecialCapture {
         scalar.addCoordinate(onePlaceAway);
 
         moves.add(scalar);
+
         return moves;
     }
 
     @Override
     public List<ChessDirection> getCapturableMoves() {
         List<ChessDirection> moves = new ArrayList<>();
-        PieceScalar scalar = new PieceScalar(this.coordinate);
 
         int momentum = team == Team.BLACK ? -1 : 1;
 
-        scalar.addCoordinate(new Coordinate(getRow() + momentum, getCol() + 1));
-        scalar.addCoordinate(new Coordinate(getRow() + momentum, getCol() - 1));
+        PieceVector bottomRightVector = new PieceVector(this.coordinate, momentum, 1, 1);
+        PieceVector bottomLeftVector = new PieceVector(this.coordinate, momentum, -1, 1);
 
-        moves.add(scalar);
+        moves.add(bottomRightVector);
+        moves.add(bottomLeftVector);
         return moves;
+    }
+
+    @Override
+    public ChessPiece[] getPromotionOptions() {
+        return new ChessPiece[]{
+                new Bishop(this.coordinate, this.team),
+                new Knight(this.coordinate, this.team),
+                new Queen(this.coordinate, this.team),
+                new Rook(this.coordinate, this.team)
+        };
+    }
+
+    @Override
+    public PromotionSquares getBlackPromotionSquares() {
+        return new PromotionSquares(0);
+    }
+
+    @Override
+    public PromotionSquares getWhitePromotionSquares() {
+        return new PromotionSquares(7);
     }
 }

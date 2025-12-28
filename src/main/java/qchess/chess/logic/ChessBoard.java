@@ -4,18 +4,18 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.layout.GridPane;
-import org.controlsfx.control.tableview2.filter.filtereditor.SouthFilter;
 import qchess.chess.chessmen.*;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
-import qchess.chess.create.interfaces.SpecialPiece;
-import qchess.chess.logic.event.CheckEvent;
-import qchess.chess.logic.event.CheckMateEvent;
-import qchess.chess.logic.event.ChessEvent;
-import qchess.chess.logic.event.MovementEvent;
+import qchess.chess.create.direction.CastleVector;
+import qchess.chess.create.direction.PieceScalar;
+import qchess.chess.create.interfaces.Castlable;
+import qchess.chess.logic.event.*;
+import qchess.chess.logic.promotion.PromotionMenu;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ChessBoard extends GridPane {
     public static final int width = 8;
@@ -23,19 +23,32 @@ public class ChessBoard extends GridPane {
     public ChessPosition[] chessPositions;
     public ArrayList<ChessPiece> chessPieces;
     protected Team playerTeam = Team.WHITE;
-
+    protected boolean castlingAllowed = true;
+    protected boolean checkMateAllowed = true;
+    protected boolean promotionAllowed = true;
+    protected boolean switchTeamAllowed = true;
+    private boolean paused;
 
     protected ChessBoard(String cssClass, String cssFile) {
         this.getStylesheets().add(cssFile);
         this.getStyleClass().add(cssClass);
+
         ChessAnnotation.chessAnnotationsInit();
+    }
+
+    protected ChessBoard() {
+        this("chessBoard",  "chessBoard.css");
     }
 
     public void launchGame() {
         chessPieces = new ArrayList<>();
 
         for (ChessPosition position : chessPositions) {
-            EventHandler<ActionEvent> movement = (e) -> Move.positionClick(position);
+            EventHandler<ActionEvent> movement = (e) -> {
+                if (!paused) {
+                    Move.positionClick(position);
+                }
+            };
 
             position.setOnAction(movement);
             if (position.chessPiece != null) {
@@ -43,7 +56,19 @@ public class ChessBoard extends GridPane {
             }
         }
 
+        initChessEventFilters();
         initChessPieces();
+    }
+
+    private void initChessEventFilters() {
+        if (promotionAllowed) {
+            this.addEventFilter(PromotionEvent.PROMOTION, event -> {
+                new PromotionMenu(event.getPromotableChessPiece(), this);
+            });
+        }
+        if (switchTeamAllowed) {
+            this.addEventFilter(MovementEvent.MOVEMENT, (ChessEvent me) -> this.switchTeams());
+        }
     }
 
     private void initChessPieces() {
@@ -54,12 +79,46 @@ public class ChessBoard extends GridPane {
                 chessPosition.setDisable(false);
             }
 
+            // init castle vectors
+            if (chessPiece instanceof Castlable && castlingAllowed) {
+                HashMap<PieceScalar, CastleVector> castleDirections = ((Castlable) chessPiece).getCastleDirections();
+                castleDirections.forEach((scalar, vector) -> {
+                    ChessPiece castleDependent = chessPositions[vector.getTerminalPoint().getBtnID()].getChessPiece();
+                    vector.setCastleDependent(castleDependent);
+                });
+
+                ((Castlable) chessPiece).setInitializedCastleDirections(castleDirections);
+
+            }
+
             //graphics init
             if (chessPiece.getGraphic() == null) {
                 chessPosition.setText(chessPiece.getName());
             } else {
                 chessPosition.setGraphic(chessPiece.getGraphic());
             }
+        }
+
+        enableChessPieces();
+    }
+
+    public void enableChessPieces() {
+        if (chessPieces.isEmpty()) {
+            return;
+        }
+
+        boolean aPieceWasEnabled = false;
+        for (ChessPiece chessPiece : chessPieces) {
+            ChessPosition chessPosition = chessPiece.getPosition();
+            if (chessPiece.getTeam() == playerTeam) {
+                aPieceWasEnabled = true;
+            }
+            chessPosition.setDisable(chessPiece.getTeam() != playerTeam);
+        }
+
+        if (!aPieceWasEnabled) {
+            switchTeams();
+            enableChessPieces();
         }
     }
 
@@ -69,19 +128,10 @@ public class ChessBoard extends GridPane {
         } else {
             this.playerTeam = Team.BLACK;
         }
-
-        for (ChessPiece chessPiece : chessPieces) {
-            ChessPosition chessPosition = chessPiece.getPosition();
-            chessPosition.setDisable(chessPiece.getTeam() != playerTeam);
-        }
     }
 
     public void switchTeam(Team team) {
         this.playerTeam = team;
-    }
-
-    protected ChessBoard() {
-        this("chessBoard",  "chessBoard.css");
     }
 
     public ChessPosition[] getChessPositions() {
@@ -110,6 +160,18 @@ public class ChessBoard extends GridPane {
 
     public ChessPiece getChessPiece(Coordinate coordinate) {
         return chessPositions[coordinate.getBtnID()].getChessPiece();
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void pause() {
+        this.paused = true;
+    }
+
+    public void unpause() {
+        this.paused = false;
     }
 
     public static Builder newBuilder() {
@@ -301,10 +363,9 @@ public class ChessBoard extends GridPane {
             return this;
         }
 
-        public Builder setSwitchTeams() {
-            EventHandler<ChessEvent> handle = (ChessEvent me) -> chessBoard.switchTeams();
+        public Builder disableAutoTeamSwitch() {
 
-            chessBoard.addEventFilter(MovementEvent.MOVEMENT, handle);
+            chessBoard.switchTeamAllowed = false;
 
             return this;
         }
@@ -313,6 +374,27 @@ public class ChessBoard extends GridPane {
             nullBoardCheck(boardType);
 
             chessPositions[chessPiece.getBtnID()].setChessPiece(chessPiece);
+
+            return this;
+        }
+
+        public Builder disableCastling() {
+
+            chessBoard.castlingAllowed = false;
+
+            return this;
+        }
+
+        public Builder disableCheckMate() {
+
+            chessBoard.checkMateAllowed = false;
+
+            return this;
+        }
+
+        public Builder disablePromotion() {
+
+            chessBoard.promotionAllowed = false;
 
             return this;
         }

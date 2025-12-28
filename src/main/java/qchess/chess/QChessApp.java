@@ -8,6 +8,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import qchess.chess.chessmen.*;
+import qchess.chess.create.Coordinate;
+import qchess.chess.create.Team;
 import qchess.chess.logic.ChessBoard;
 
 import java.io.IOException;
@@ -27,8 +30,8 @@ public class QChessApp extends Application {
         Image img = new Image("galaxybackground.png");
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
-                .normalChessBoard()
-                .setSwitchTeams()
+                .emptyChessBoard()
+                .add(new TempChessman(new Coordinate(3, 3), Team.BLACK))
                 .build()
         ;
 

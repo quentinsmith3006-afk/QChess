@@ -13,12 +13,16 @@ public class ChessPosition extends Button {
         this.chessPiece = chessPiece;
         this.coordinate = coordinate;
 
-        if  (chessPiece != null && chessPiece.getGraphic() != null) {
-            this.setGraphic(chessPiece.getGraphic());
+        if  (chessPiece != null) {
+            if (chessPiece.getGraphic() != null) {
+                this.setGraphic(chessPiece.getGraphic());
+            } else {
+                this.setText(chessPiece.getName());
+            }
         }
 
         this.getStyleClass().add("chess-button");
-        this.setPrefSize(150,150);
+        this.setPrefSize(300,300);
     }
 
     ChessPosition(String text, Coordinate coordinate) {

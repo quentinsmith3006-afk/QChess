@@ -9,4 +9,6 @@ public interface Castlable {
     public HashMap<PieceScalar, CastleVector> getCastleDirections();
     public boolean hasCastled();
     public void setHasCastled(boolean hasCastled);
+    public void setInitializedCastleDirections(HashMap<PieceScalar, CastleVector> initializedCastleDirections);
+    public HashMap<PieceScalar, CastleVector> getInitializedCastleDirections();
 }
