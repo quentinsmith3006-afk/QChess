@@ -4,27 +4,25 @@ import javafx.stage.Stage;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.interfaces.Promotable;
 import qchess.chess.logic.ChessBoard;
+import qchess.chess.logic.ChessLogic;
 import qchess.chess.logic.ChessPosition;
-import qchess.chess.logic.event.ChessEvent;
-import qchess.chess.logic.event.PromotionEvent;
 
-public class PromotionLogic {
+public class PromotionLogic extends ChessLogic {
     ChessPiece[] possiblePromotions;
     Promotable promotableChessPiece;
     Stage stage;
-    ChessBoard chessBoard;
 
     public PromotionLogic(Stage stageToDisable, ChessPiece[] possiblePromotions, Promotable promotableChessPiece, ChessBoard chessBoard) {
+        super(chessBoard);
         this.possiblePromotions = possiblePromotions;
         this.promotableChessPiece = promotableChessPiece;
         this.stage = stageToDisable;
-        this.chessBoard = chessBoard;
     }
 
     public PromotionLogic(ChessPiece[] possiblePromotions, Promotable promotableChessPiece, ChessBoard chessBoard) {
+        super(chessBoard);
         this.possiblePromotions = possiblePromotions;
         this.promotableChessPiece = promotableChessPiece;
-        this.chessBoard = chessBoard;
     }
 
     public void promote(ChessPiece promotionPiece) {

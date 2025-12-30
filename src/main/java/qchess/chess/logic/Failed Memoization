@@ -1,0 +1,3 @@
+Attempted to memoize past chess positions but i can't because each piece's directions need to be vectorized
+to accommodate for the dynamics of a chessboard. I can't vectorize them because I would essentially have the
+same checks and loops if I didn't have memoization to begin with.
