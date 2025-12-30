@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -30,8 +31,10 @@ public class QChessApp extends Application {
         Image img = new Image("galaxybackground.png");
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
-                .normalChessBoard()
-                .disableAutoTeamSwitch()
+                .emptyChessBoard()
+                .add(new King(new Coordinate(4,4), Team.BLACK))
+                .add(new Queen(new Coordinate(0,1), Team.WHITE))
+                .add(new Pawn(new Coordinate(5,4), Team.BLACK))
                 .build()
         ;
 

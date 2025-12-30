@@ -27,6 +27,9 @@ public class ChessBoard extends GridPane {
     protected boolean checkMateAllowed = true;
     protected boolean promotionAllowed = true;
     protected boolean switchTeamAllowed = true;
+    protected boolean checkAllowed = true;
+    protected boolean pinAllowed = true;
+    protected boolean pieceInCheck = false;
     private boolean paused;
 
     protected ChessBoard(String cssClass, String cssFile) {
@@ -68,6 +71,9 @@ public class ChessBoard extends GridPane {
         }
         if (switchTeamAllowed) {
             this.addEventFilter(MovementEvent.MOVEMENT, (ChessEvent me) -> this.switchTeams());
+        }
+        if (checkMateAllowed) {
+            this.addEventFilter(CheckEvent.CHECK, (ChessEvent me) -> {pieceInCheck = true;});
         }
     }
 

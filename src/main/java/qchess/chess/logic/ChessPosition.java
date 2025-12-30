@@ -4,9 +4,15 @@ import javafx.scene.control.Button;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 public class ChessPosition extends Button {
     ChessPiece chessPiece;
     Coordinate coordinate;
+    boolean isAttacked = false;
+    int amountOfAttackers = 0;
+    HashSet<ChessPiece> attackers = new HashSet<>();
 
     ChessPosition(String text, ChessPiece chessPiece, Coordinate coordinate) {
         super(text);
@@ -39,5 +45,12 @@ public class ChessPosition extends Button {
 
     public void setChessPiece(ChessPiece chessPiece) {
         this.chessPiece = chessPiece;
+    }
+
+    public boolean  isAttacked() {
+        return isAttacked;
+    }
+    public void setIsAttacked(boolean isAttacked) {
+        this.isAttacked = isAttacked;
     }
 }

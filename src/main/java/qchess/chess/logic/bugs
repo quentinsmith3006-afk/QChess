@@ -1,0 +1,10 @@
+New algorithm idea for checkmate
+
+Store all the checkable pieces in a arraylist in chessboard
+
+
+
+cross reference the checkable piece's moves with the moves at the start
+then do it in sequence as each move is clicked.
+
+set chess position boolean beingAttacked to true --> prevents having to cross reference
