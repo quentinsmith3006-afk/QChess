@@ -48,6 +48,12 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
         return coordinates.contains(coord);
     }
 
+    public ArrayList<Coordinate> getDirectionFromOrigin() {
+        ArrayList<Coordinate> direction = new ArrayList<>(coordinates);
+        direction.add(start);
+        return direction;
+    }
+
     public int getSize() {
         return coordinates.size();
     }

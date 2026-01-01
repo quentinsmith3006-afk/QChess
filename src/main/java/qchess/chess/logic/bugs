@@ -8,3 +8,13 @@ cross reference the checkable piece's moves with the moves at the start
 then do it in sequence as each move is clicked.
 
 set chess position boolean beingAttacked to true --> prevents having to cross reference
+
+
+When promoting to something, it must check if the other team is now in check after the promotion
+
+
+
+Jan 1st 2026
+Checkmate occurs prematurely even if a piece can block it
+
+Pinning is not fully implemented or doesnt work

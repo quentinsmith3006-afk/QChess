@@ -7,12 +7,13 @@ import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceScalar;
 import qchess.chess.create.direction.PieceVector;
 import qchess.chess.create.interfaces.Promotable;
+import qchess.chess.create.interfaces.SpecifyCapture;
 import qchess.chess.logic.promotion.PromotionSquares;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TempChessman extends ChessPiece implements Promotable {
+public class TempChessman extends ChessPiece implements Promotable, SpecifyCapture {
     public TempChessman(Coordinate coordinate, Team team) {
         super(coordinate, team);
     }
@@ -39,5 +40,13 @@ public class TempChessman extends ChessPiece implements Promotable {
     @Override
     public PromotionSquares getWhitePromotionSquares() {
         return new PromotionSquares(0);
+    }
+
+    @Override
+    public List<ChessDirection> getCapturableMoves() {
+        ArrayList<ChessDirection> capturableMoves = new ArrayList<>();
+        capturableMoves.add(new PieceVector(this.coordinate, 1, 0));
+
+        return capturableMoves;
     }
 }

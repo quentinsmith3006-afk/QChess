@@ -47,6 +47,10 @@ public class ChessPosition extends Button {
         this.chessPiece = chessPiece;
     }
 
+    public Coordinate getCoordinate() {
+        return coordinate;
+    }
+
     public boolean  isAttacked() {
         return isAttacked;
     }
