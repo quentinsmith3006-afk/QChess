@@ -23,7 +23,7 @@ public class PromotionMenu extends HBox {
         stage.setScene(scene);
         stage.show();
 
-        this.promotionLogic = new PromotionLogic(stage, possiblePromotions, promotableChessPiece, chessBoard);
+        this.promotionLogic = new PromotionLogic(stage, promotableChessPiece, chessBoard);
 
         this.possiblePromotions = promotableChessPiece.getPromotionOptions();
         this.promotableChessPiece = promotableChessPiece;
@@ -41,7 +41,7 @@ public class PromotionMenu extends HBox {
     private PromotionCard[] initPromotionCards() {
         PromotionCard[] promotionCardsResult = new PromotionCard[possiblePromotions.length];
         for (int i = 0; i < possiblePromotions.length; i++) {
-            promotionCardsResult[i] = new PromotionCard(this, promotionLogic, possiblePromotions[i]);
+            promotionCardsResult[i] = new PromotionCard(promotionLogic, possiblePromotions[i]);
             cardDisplay.getChildren().add(promotionCardsResult[i]);
         }
 
