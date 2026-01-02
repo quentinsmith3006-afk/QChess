@@ -18,3 +18,11 @@ Jan 1st 2026
 Checkmate occurs prematurely even if a piece can block it
 
 Pinning is not fully implemented or doesnt work
+
+
+Jan 2nd 2026
+Checkmate no longer occurs prematurely and pinning is no longer an issue.
+
+
+
+New bug: When a piece "blocks" an attack, it cna block at anypoint of that vector including behind the king

@@ -85,6 +85,8 @@ public abstract class ChessPiece {
         return pinned;
     }
 
+    public void setPinned(boolean pinned) {this.pinned = pinned;}
+
     public Team getTeam() {return team;}
 
     public ImageView getGraphic() {return this.graphic;}

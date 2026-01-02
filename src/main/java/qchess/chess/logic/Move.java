@@ -20,13 +20,14 @@ public class Move {
     public static ArrayList<ChessPosition> pastPositions;
     public static ChessPosition pastChessPosition;
     public static HashMap<Checkable, ChessDirection> checkAndAttackDirection = new HashMap<>();
+    public static HashMap<ChessPiece, ChessPiece> pinnerPinnedMap = new HashMap<>();
     public static int numMoves;
+
+    static int a; //DELETE
 
     static void positionClick(ChessPosition clickedPosition) {
         ChessPiece chessPiece = clickedPosition.getChessPiece();
         ChessPosition[] chessPositions = chessBoard.getChessPositions();
-
-
 
         // Normal movement
         if (chessPiece == null) {
@@ -57,29 +58,21 @@ public class Move {
             disablePastPlayablePositions();
         }
 
+
+        System.out.println("CLICK " + a++);
+
         // Playable Squares Refiner
         playableSquaresRefinery(chessPiece, clickedPosition, chessPositions, true);
 
-        if (chessBoard.pieceInCheck && !(chessPiece instanceof Checkable)) {
-            System.out.println(chessPiece);
-            ArrayList<ChessDirection> fullCheckingVector;
-            List<Coordinate> convertedPosToCoord = pastPositions.stream()
-                    .map(ChessPosition::getCoordinate)
-                    .toList();
+        System.out.println(chessPiece + " PIECE CLICKED");
+        System.out.println(!chessPiece.isPinned());
 
-            for (Map.Entry<Checkable, ChessDirection> checkMap : checkAndAttackDirection.entrySet()) {
-                for (Coordinate coord : checkMap.getValue().getDirectionFromOrigin()) {
-                    if (convertedPosToCoord.contains(coord)) {
-                        chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
-                        numMoves++;
-                    }
-                }
-            }
-        } else {
-            for (ChessPosition chessPosition : pastPositions) {
-                chessPosition.setDisable(false);
-            }
+        System.out.println("PASTPOS:");
+        for (ChessPosition chessPosition : pastPositions) {
+            System.out.println(chessPosition.coordinate);
         }
+        System.out.println();
+
     }
 
     private static boolean isCheckableCaptureConditions(ChessPosition clickedPosition) {
@@ -172,6 +165,7 @@ public class Move {
 
     private static ArrayList<ChessPosition>  playableSquaresRefinery(ChessPiece chessPiece, ChessPosition position, ChessPosition[] chessPositions, boolean isFromClick) {
         ArrayList<ChessPosition> attackedPositions = new ArrayList<>();
+
         numMoves = 0;
         if (pastPositions == null) {
             pastPositions = new ArrayList<>();
@@ -184,7 +178,7 @@ public class Move {
         List<ChessDirection> pieceVectors = new ArrayList<>(new LinkedHashSet<>(chessPiece.getPlayableDirections()));
 
         if (position.getChessPiece() != null && chessBoard.castlingAllowed) {
-            if (chessPiece instanceof Castlable castlablePiece) {
+            if (chessPiece instanceof Castlable castlablePiece && !chessBoard.pieceInCheck) {
                 if (!castlablePiece.hasCastled() && !chessPiece.hasMoved()) {
                     HashMap<PieceScalar, CastleVector> castleDirections = castlablePiece.getInitializedCastleDirections();
                     castleDirections.forEach((scalar, castleVector) -> {
@@ -232,6 +226,7 @@ public class Move {
                         ChessPiece coordinatePiece = posOfCoord.getChessPiece();
                         boolean posHasChessPiece = coordinatePiece != null;
                         attackedPositions.add(posOfCoord);
+
                         if (posHasChessPiece) {
 
                             // Coordinate sees a checkable piece
@@ -241,7 +236,7 @@ public class Move {
                                 }
                             }
 
-                            if (chessPiece instanceof Checkable checkable && chessBoard.checkMateAllowed) {
+                            if (chessPiece instanceof Checkable && chessBoard.checkMateAllowed) {
                                 if (posOfCoord.isAttacked()) {
                                     break;
                                 } else {
@@ -269,6 +264,9 @@ public class Move {
 
             for (ChessDirection direction : pieceVectors) {
                 boolean pieceInWay = false;
+                boolean firstPotentialPin = false;
+                ChessPiece possiblePin = null;
+
                 for (Coordinate coord : direction) {
                     ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
                     ChessPiece coordinatePiece = posOfCoord.getChessPiece();
@@ -292,7 +290,7 @@ public class Move {
                     if (chessPiece instanceof SpecifyCapture) { // Fixes pawns showing what is directly in front of them
                         if (!posHasChessPiece) {
                             //posOfCoord.setDisable(false);
-                            if (!pieceInWay) {
+                            if (!pieceInWay && !firstPotentialPin) {
                                 if (isFromClick) {
                                     pastPositions.add(posOfCoord);
                                     numMoves++;
@@ -301,11 +299,13 @@ public class Move {
                         }
                     } else {
                         //posOfCoord.setDisable(false);
-                        attackedPositions.add(posOfCoord);
-                        if (!pieceInWay) {
-                            if (isFromClick) {
-                                pastPositions.add(posOfCoord);
-                                numMoves++;
+                        if (!firstPotentialPin) {
+                            attackedPositions.add(posOfCoord);
+                            if (!pieceInWay) {
+                                if (isFromClick) {
+                                    pastPositions.add(posOfCoord);
+                                    numMoves++;
+                                }
                             }
                         }
                     }
@@ -314,19 +314,32 @@ public class Move {
                         boolean chessPieceIsSpecialPiece = coordinatePiece instanceof SpecialPiece;
                         boolean chessPieceIsCheckable = coordinatePiece instanceof Checkable;
 
+                        if (firstPotentialPin && chessPieceIsCheckable) {
+                            possiblePin.setPinned(true);
+                            pinnerPinnedMap.put(chessPiece, possiblePin);
+                            System.out.println(possiblePin + " PINNED");
+                        }
+
                         // Coordinate sees a checkable piece
                         if (!(chessPiece instanceof SpecifyCapture) && chessPiece.getTeam() != coordinatePiece.getTeam()) {
-                            if (coordinatePiece instanceof Checkable checkable && chessBoard.checkMateAllowed) {
+                            if (coordinatePiece instanceof Checkable checkable && chessBoard.checkMateAllowed && !firstPotentialPin) {
                                 checkAndAttackDirection.put(checkable, direction);
                             }
                         }
 
-                        if (!chessPieceIsSpecialPiece) {
-                            pieceInWay = true;
+                        if (!ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
+                            if (!chessPieceIsSpecialPiece) {
+                                pieceInWay = true;
+                            }
+
+                            if (!chessPieceIsCheckable && firstPotentialPin) {
+                                break;
+                            }
                         }
 
-                        if (!chessPieceIsCheckable && !ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
-                            break;
+                        if (!firstPotentialPin) {
+                            possiblePin = coordinatePiece;
+                            firstPotentialPin = true;
                         }
                     }
                 }
@@ -345,7 +358,40 @@ public class Move {
             }
         }
 
+        if (!chessPiece.isPinned()) {
+            enableRefinedPlayableSquares(chessPiece, isFromClick);
+        }
+
         return attackedPositions;
+    }
+
+    private static void enableRefinedPlayableSquares(ChessPiece chessPiece, boolean isFromClick) {
+        if (chessBoard.pieceInCheck && !(chessPiece instanceof Checkable)) {
+            System.out.println(chessPiece + " IN PIECECHECK");
+            List<Coordinate> convertedPosToCoord = pastPositions.stream()
+                    .map(ChessPosition::getCoordinate)
+                    .toList();
+
+            for (Map.Entry<Checkable, ChessDirection> checkMap : checkAndAttackDirection.entrySet()) {
+                for (Coordinate coord : checkMap.getValue().getDirectionFromOrigin()) {
+                    if (convertedPosToCoord.contains(coord)) {
+                        if (isFromClick) {
+                            chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
+                        }
+                        numMoves++;
+                    }
+                }
+            }
+        } else {
+            System.out.println(chessPiece + " GOT HERE");
+
+            for (ChessPosition chessPosition : pastPositions) {
+                System.out.println(chessPiece + " GOT HERE");
+                if (isFromClick) {
+                    chessPosition.setDisable(false);
+                }
+            }
+        }
     }
 
     private static void createEnpassantPiece(ChessPosition[] chessPositions) {
@@ -433,6 +479,7 @@ public class Move {
     }
 
     public static void move(ChessPosition pastPos, ChessPosition futurePos) {
+
         if (futurePos.getChessPiece() != null) {
             throw new IllegalStateException("Movement square is occupied, try capture() instead.");
         }
@@ -500,6 +547,55 @@ public class Move {
 
                 if (totalMoves == 0) {
                     System.out.println("CHECKMATE");
+                }
+            }
+        }
+
+        // Pin
+        for (Map.Entry<ChessPiece, ChessPiece> pinnerPinEntry : pinnerPinnedMap.entrySet()) {
+            ChessPiece pinner = pinnerPinEntry.getKey();
+            ChessPiece pinned = pinnerPinEntry.getValue();
+
+            //System.out.println(pinner + " PINNING " + pinned);
+
+            for (ChessDirection direction : pinner.getPlayableDirections()) {
+                boolean possiblePin = false;
+                ChessPiece mayBePinned = null;
+                ChessPiece verifiedPin = null;
+
+                for (Coordinate coord : direction) {
+                    boolean posHasPiece = chessBoard.chessPositions[coord.getBtnID()].getChessPiece() != null;
+                    if (posHasPiece) {
+                        ChessPiece pieceInVector = chessBoard.chessPositions[coord.getBtnID()].getChessPiece();
+                        if (pieceInVector.getTeam() != pinner.getTeam()) {
+                            if (possiblePin) {
+                                if (pieceInVector instanceof Checkable) {
+                                    verifiedPin = mayBePinned;
+                                    break;
+                                } else {
+                                    break;
+                                }
+
+                            }
+
+                            if (!possiblePin) {
+                                possiblePin = true;
+                                mayBePinned = pieceInVector;
+                            }
+                        }
+
+                    }
+                }
+                //System.out.println(mayBePinned + " MAYBEPINNED");
+                //System.out.println(pinned + " PINNED");
+                if (verifiedPin != null) {
+                    //System.out.println(mayBePinned.equals(pinned));
+                }
+                if (verifiedPin != null && verifiedPin.equals(pinned)) {
+                    pinned.setPinned(true);
+                    break;
+                } else {
+                    pinned.setPinned(false);
                 }
             }
         }
