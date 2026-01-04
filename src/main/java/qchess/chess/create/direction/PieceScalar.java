@@ -29,13 +29,13 @@ public class PieceScalar extends ChessDirection {
             uncheckedCoordinates.add(coordinate);
         }
 
-        this.sort(this.coordinates, start);
+        this.sort(this.coordinates);
     }
 
     public boolean addCoordinate(Coordinate coordinate) {
         if (PieceScalar.isInBounds(coordinate)) {
             this.coordinates.add(coordinate);
-            this.sort(this.coordinates, start);
+            this.sort(this.coordinates);
             return true;
         }
 

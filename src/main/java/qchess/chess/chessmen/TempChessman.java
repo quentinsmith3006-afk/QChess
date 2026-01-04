@@ -22,6 +22,8 @@ public class TempChessman extends ChessPiece implements Promotable, SpecifyCaptu
     public List<ChessDirection> getRawPlayableDirections() {
         ArrayList<ChessDirection> directions = new ArrayList<>();
         directions.add(new PieceScalar(this.coordinate, new Coordinate(this.getRow() + 1, this.getCol())));
+        directions.add(new PieceScalar(this.coordinate, new Coordinate(this.getRow() - 1, this.getCol())));
+
         return directions;
     }
 
@@ -44,9 +46,9 @@ public class TempChessman extends ChessPiece implements Promotable, SpecifyCaptu
 
     @Override
     public List<ChessDirection> getCapturableMoves() {
-        ArrayList<ChessDirection> capturableMoves = new ArrayList<>();
-        capturableMoves.add(new PieceVector(this.coordinate, 1, 0));
 
-        return capturableMoves;
+        Bishop bishop = new Bishop(this.coordinate, this.team);
+
+        return new ArrayList<>(bishop.getPlayableDirections());
     }
 }

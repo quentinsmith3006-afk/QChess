@@ -25,4 +25,31 @@ Checkmate no longer occurs prematurely and pinning is no longer an issue.
 
 
 
+(fixed)
 New bug: When a piece "blocks" an attack, it cna block at anypoint of that vector including behind the king
+
+(fixed)
+Bug fixed, attack vectors surround King even when a piece is pinned
+
+
+Enpassant is shown even when it isn't a playable piece if you disable switch teams. (Fixed)
+
+Pieces can hit the enpassant piece if disabled switch teams. (Fixed)
+
+Pieces can't move along the attacking vector when they are pinned (fixed)
+
+Doesn't check board for a initial check/checkmate if enabled
+-> After I implement this
+
+
+I need to add stalemate
+
+
+
+bug w/ checkmate
+Basically the king is getting sloppy seconds from pastChessPositions which is worn and used by several
+pieces. So you cannot make numMoves reliant on pastChessPositions and it must be directly incremented
+inside of the refinery. The same thing goes for other pieces except it will still work in practice, its
+just that the number of moves wont be accurate at all.
+
+

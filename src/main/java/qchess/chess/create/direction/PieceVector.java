@@ -47,7 +47,7 @@ public class PieceVector extends ChessDirection {
             coordinates.add(new Coordinate(r, c));
         }
 
-        this.sort(this.coordinates, start);
+        this.sort(this.coordinates);
     }
 
     public PieceVector(Coordinate start, int deltaRow, int deltaCol) {

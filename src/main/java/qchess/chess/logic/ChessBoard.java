@@ -11,11 +11,13 @@ import qchess.chess.create.Team;
 import qchess.chess.create.direction.CastleVector;
 import qchess.chess.create.direction.PieceScalar;
 import qchess.chess.create.interfaces.Castlable;
+import qchess.chess.create.interfaces.SpecialPiece;
 import qchess.chess.logic.event.*;
 import qchess.chess.logic.promotion.PromotionMenu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 
 public class ChessBoard extends GridPane {
     public static final int width = 8;
@@ -30,11 +32,14 @@ public class ChessBoard extends GridPane {
     protected boolean checkAllowed = true;
     protected boolean pinAllowed = true;
     protected boolean pieceInCheck = false;
+    protected MoveLogic moveLogic;
     private boolean paused;
 
     protected ChessBoard(String cssClass, String cssFile) {
         this.getStylesheets().add(cssFile);
         this.getStyleClass().add(cssClass);
+
+        moveLogic = new MoveLogic(this);
 
         ChessAnnotation.chessAnnotationsInit();
     }
@@ -49,7 +54,7 @@ public class ChessBoard extends GridPane {
         for (ChessPosition position : chessPositions) {
             EventHandler<ActionEvent> movement = (e) -> {
                 if (!paused) {
-                    Move.positionClick(position);
+                    moveLogic.positionClick(position);
                 }
             };
 
@@ -81,20 +86,25 @@ public class ChessBoard extends GridPane {
         for (ChessPiece chessPiece : chessPieces) {
             chessPiece.setPosition(chessPositions[chessPiece.getBtnID()]);
             ChessPosition chessPosition = chessPiece.getPosition();
-            if (chessPiece.getTeam() == playerTeam) {
-                chessPosition.setDisable(false);
-            }
 
             // init castle vectors
-            if (chessPiece instanceof Castlable && castlingAllowed) {
-                HashMap<PieceScalar, CastleVector> castleDirections = ((Castlable) chessPiece).getCastleDirections();
+            if (chessPiece instanceof Castlable castlable && castlingAllowed) {
+                HashMap<PieceScalar, CastleVector> castleDirections = castlable.getCastleDirections();
                 castleDirections.forEach((scalar, vector) -> {
-                    ChessPiece castleDependent = chessPositions[vector.getTerminalPoint().getBtnID()].getChessPiece();
-                    vector.setCastleDependent(castleDependent);
+                    try {
+                        ChessPiece castleDependent = chessPositions[vector.getTerminalPoint().getBtnID()].getChessPiece();
+                        vector.setCastleDependent(castleDependent);
+                    } catch (NoSuchElementException e) {
+                    }
                 });
 
-                ((Castlable) chessPiece).setInitializedCastleDirections(castleDirections);
+                castlable.setInitializedCastleDirections(castleDirections);
+            }
 
+            if (chessPiece.getTeam() == playerTeam) {
+                chessPosition.setDisable(false);
+            } else {
+                moveLogic.addAttackers(chessPiece, chessPosition);
             }
 
             //graphics init
@@ -119,12 +129,28 @@ public class ChessBoard extends GridPane {
             if (chessPiece.getTeam() == playerTeam) {
                 aPieceWasEnabled = true;
             }
-            chessPosition.setDisable(chessPiece.getTeam() != playerTeam);
+            boolean chessPieceIsSpecial = chessPiece instanceof SpecialPiece;
+            if (!chessPieceIsSpecial) {
+                chessPosition.setDisable(chessPiece.getTeam() != playerTeam);
+            }
         }
 
+        // Mechanism which allows you to start on the team which you have pieces.
         if (!aPieceWasEnabled) {
             switchTeams();
             enableChessPieces();
+        }
+
+        initialCheckForCheck();
+    }
+
+    public void initialCheckForCheck() {
+        for (ChessPiece chessPiece : chessPieces) {
+            if (moveLogic.scanForCheck(chessPiece, chessPiece.getPosition())) {
+                if (chessPiece.getTeam() == playerTeam) {
+                    System.out.println("BASICALLY CHECKMATE");
+                }
+            }
         }
     }
 
@@ -138,6 +164,10 @@ public class ChessBoard extends GridPane {
 
     public void switchTeam(Team team) {
         this.playerTeam = team;
+    }
+
+    public MoveLogic getMoveLogic() {
+        return moveLogic;
     }
 
     public ChessPosition[] getChessPositions() {
@@ -330,7 +360,6 @@ public class ChessBoard extends GridPane {
 
                     addWhiteTeam(row, col);
                     addBlackTeam(row, col);
-
                 }
             }
 
@@ -419,7 +448,7 @@ public class ChessBoard extends GridPane {
             nullBoardCheck(boardType);
 
             chessBoard.chessPositions = this.chessPositions;
-            Move.chessBoard = chessBoard;
+
             return chessBoard;
         }
     }

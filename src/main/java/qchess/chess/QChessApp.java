@@ -32,9 +32,6 @@ public class QChessApp extends Application {
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
                 .normalChessBoard()
-                //.add(new King(new Coordinate(4,4), Team.BLACK))
-                //.add(new Queen(new Coordinate(0,1), Team.WHITE))
-                //.add(new Rook(new Coordinate(3,4), Team.BLACK))
                 .build()
         ;
 
