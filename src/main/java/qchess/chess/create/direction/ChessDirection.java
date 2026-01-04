@@ -17,7 +17,7 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
         this.start = start;
     }
 
-    void sort(List<Coordinate> coords, Coordinate focal) {
+    void sort(List<Coordinate> coords) {
         for (int i = 0; i < coords.size(); i++) {
             int smallestCoordIndex = i;
             for (int j = i + 1; j < coords.size(); j++) {
@@ -51,6 +51,8 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
     public ArrayList<Coordinate> getDirectionFromOrigin() {
         ArrayList<Coordinate> direction = new ArrayList<>(coordinates);
         direction.add(start);
+
+        this.sort(direction);
         return direction;
     }
 

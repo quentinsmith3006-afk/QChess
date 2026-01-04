@@ -1,0 +1,12 @@
+Jan 2nd 2026
+Beginning comprehensive (hopefully) bug test of the framework.
+All initial features are fully implemented but not fully tested.
+
+Specify capture positions ->
+double check ->
+Checkmate ->
+Check ->
+Castling ->
+Castling under check ->
+Custom board checkmate ->
+Handler methods for events ->

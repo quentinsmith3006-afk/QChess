@@ -6,24 +6,25 @@ import qchess.chess.create.interfaces.Promotable;
 import qchess.chess.logic.ChessBoard;
 import qchess.chess.logic.ChessLogic;
 import qchess.chess.logic.ChessPosition;
-import qchess.chess.logic.Move;
+import qchess.chess.logic.MoveLogic;
 
 public class PromotionLogic extends ChessLogic {
     Promotable promotableChessPiece;
+    MoveLogic moveLogic;
     Stage stage;
 
     public PromotionLogic(Stage stageToDisable, Promotable promotableChessPiece, ChessBoard chessBoard) {
         super(chessBoard);
         this.promotableChessPiece = promotableChessPiece;
         this.stage = stageToDisable;
+        this.moveLogic = chessBoard.getMoveLogic();
     }
 
     public PromotionLogic(Promotable promotableChessPiece, ChessBoard chessBoard) {
         super(chessBoard);
         this.promotableChessPiece = promotableChessPiece;
+        this.moveLogic = chessBoard.getMoveLogic();
     }
-
-
 
     public void promote(ChessPiece promotionPiece) {
         ChessPiece originalPiece = (ChessPiece) promotableChessPiece;
@@ -39,7 +40,7 @@ public class PromotionLogic extends ChessLogic {
         promotionPiece.setPosition(pos);
         promotionPiece.setCoordinate(pos.getCoordinate());
 
-        Move.scanForCheck(promotionPiece, pos);
+        moveLogic.scanForCheck(promotionPiece, pos);
 
         chessBoard.chessPieces.remove(originalPiece);
         chessBoard.chessPieces.add(promotionPiece);
