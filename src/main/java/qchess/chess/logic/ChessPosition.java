@@ -29,6 +29,7 @@ public class ChessPosition extends Button {
 
         this.getStyleClass().add("chess-button");
         this.setPrefSize(300,300);
+        this.setMinSize(40,40);
     }
 
     ChessPosition(String text, Coordinate coordinate) {

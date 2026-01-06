@@ -12,10 +12,10 @@ public class Coordinate {
     boolean canCapture;
     String algebraicName;
 
-    static String[] ALGEBRAIC = new String[]{
+    static final String[] ALGEBRAIC = new String[]{
             "a", "b", "c", "d", "e", "f", "g", "h"
     };
-    static HashMap<String, Integer> ALGEBRAIC_MAP = algebraicMapInit();
+    static final HashMap<String, Integer> ALGEBRAIC_MAP = algebraicMapInit();
 
     public Coordinate(int row, int col) {
         if (col < ALGEBRAIC.length && col >= 0) {
@@ -64,13 +64,13 @@ public class Coordinate {
     }
 
     private static HashMap<String, Integer> algebraicMapInit() {
-        ALGEBRAIC_MAP = new HashMap<>();
+        HashMap<String, Integer> map = new HashMap<>();
 
-        for (int letter = 0; letter < ALGEBRAIC.length; letter++) {
-            ALGEBRAIC_MAP.put(ALGEBRAIC[letter], letter);
+        for (int letterIndex = 0; letterIndex < ALGEBRAIC.length; letterIndex++) {
+            map.put(ALGEBRAIC[letterIndex], letterIndex);
         }
 
-        return ALGEBRAIC_MAP;
+        return map;
     }
 
     public String toString() {

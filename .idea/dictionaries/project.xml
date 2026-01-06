@@ -2,6 +2,8 @@
   <dictionary name="project">
     <words>
       <w>castlable</w>
+      <w>checkables</w>
+      <w>nsee</w>
       <w>playables</w>
     </words>
   </dictionary>

@@ -7,6 +7,7 @@ import qchess.chess.logic.ChessBoard;
 import qchess.chess.logic.ChessLogic;
 import qchess.chess.logic.ChessPosition;
 import qchess.chess.logic.MoveLogic;
+import qchess.chess.logic.event.PostPromotionEvent;
 
 public class PromotionLogic extends ChessLogic {
     Promotable promotableChessPiece;
@@ -48,6 +49,8 @@ public class PromotionLogic extends ChessLogic {
         if (stage != null && stage.isShowing()) {
             stage.close();
         }
+
+        chessBoard.fireEvent(new PostPromotionEvent(promotionPiece));
 
         chessBoard.unpause();
     }

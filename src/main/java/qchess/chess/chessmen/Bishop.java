@@ -5,6 +5,7 @@ import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.interfaces.SpecifyCapture;
 import qchess.chess.create.piecemodifiers.HorizonalSymmetry;
 import qchess.chess.create.piecemodifiers.VerticalSymmetry;
 

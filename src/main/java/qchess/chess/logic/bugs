@@ -38,18 +38,59 @@ Pieces can hit the enpassant piece if disabled switch teams. (Fixed)
 
 Pieces can't move along the attacking vector when they are pinned (fixed)
 
-Doesn't check board for a initial check/checkmate if enabled
+Doesn't check board for a initial check/checkmate if enabled (fixed)
+
+jan 03
+A piece can be pinned to its own Checkable (Fixed)
+
+Pieces can pin same piece teams to opposite team Checkables (fixed)
+
+jan 04
+black pawns  cant move at the bottom most row (fixed)
+White pawns  cant move at the top most row (fixed)
+
+When pieces promote, checkables dont automatically adjust their playables (fixed)
+
+When checking a checkable, the checkable sides attacks displayed (fixed)
+
+Attack squares can go through same-team pieces (bad) (fixed maybe)
+
+Kings can touch if the king has a supporting piece ?? HOW DO I REPRODUCE IT BRUH (fixed)
+
+If pieces are equidistant from the king as is the checking piece, those pieces can move (Can't reproduce)
+
+castling bug where KING can't be placed on sides b/c castle vector breaks (fixed)
+
+numMoves doesn't count specify captures (Fixed)
+
+Make sure users of the API can access all chess pieces
+
+Chess pieces can still capture on their own enpassant squares. I suspect it has smt to do with memoize
+
+Chessmen can still pin their fellow brethren
+
+Make sure there is a way to handle pieces who can move on their castle pos
+
+
+
 -> After I implement this
 
 
-I need to add stalemate
 
 
 
-bug w/ checkmate
-Basically the king is getting sloppy seconds from pastChessPositions which is worn and used by several
-pieces. So you cannot make numMoves reliant on pastChessPositions and it must be directly incremented
-inside of the refinery. The same thing goes for other pieces except it will still work in practice, its
-just that the number of moves wont be accurate at all.
+NEW FEATURES TO BE ADDED
+I need to add stalemate -> mainly the stalemate event activate whenever stalemate condition occurs
+
+Chess notation -> I should be able to place and make chessmen using this and import chess games. (very important for using stockfish API)
+
+Chess 960 board and ability to implement 960 castling (hard)
+
+I think thats all I want to add tbh
+
+
+
+
+
 
 
