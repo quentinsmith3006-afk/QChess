@@ -18,7 +18,6 @@ public abstract class ChessPiece {
     protected ImageView graphic;
     protected int pieceValue;
     protected boolean hasMoved = false;
-    protected boolean synced = false;
 
     public ChessPiece(Coordinate coordinate, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
         this.startCoordinate = coordinate;
@@ -51,7 +50,7 @@ public abstract class ChessPiece {
     }
 
     public List<ChessDirection> getPlayableDirections() {
-        List<ChessDirection> moves = null;
+        List<ChessDirection> moves;
         try {
             moves = ChessAnnotation.applyAnnotations(this);
         } catch (NullPointerException npe) {

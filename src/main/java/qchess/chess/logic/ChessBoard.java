@@ -73,6 +73,10 @@ public class ChessBoard extends GridPane {
             this.addEventFilter(PromotionEvent.PROMOTION, event -> {
                 new PromotionMenu(event.getPromotableChessPiece(), this);
             });
+
+            this.addEventFilter(PostPromotionEvent.POSTPROMOTION, (ChessEvent me) -> {
+                moveLogic.playableSquaresRefinery(me.chessPiece, me.chessPiece.getPosition(), chessPositions, true, false);
+            });
         }
         if (switchTeamAllowed) {
             this.addEventFilter(MovementEvent.MOVEMENT, (ChessEvent me) -> this.switchTeams());

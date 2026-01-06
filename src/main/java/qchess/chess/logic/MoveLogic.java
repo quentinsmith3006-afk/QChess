@@ -17,17 +17,19 @@ import java.util.*;
 public class MoveLogic extends ChessLogic {
     public ArrayList<ChessPosition> pastPositions;
     public ChessPosition pastChessPosition;
-    private final HashMap<Integer, ChessDirection> distFrmOriAttackDirectionMap;
+    private final ArrayList<PinCheckInformation> pinCheckInformation;
     private final HashMap<ChessPiece, ChessPiece> pinnerPinnedMap;
     private final HashMap<ChessPiece, List<ChessPosition>> memoizedPastPositions;
     private final HashMap<ChessPiece, List<ChessPosition>> memoizedAttacks;
+    private final HashMap<ChessPiece, Integer> chessPieceNumMovesMap;
 
     public int numMoves;
 
     public MoveLogic(ChessBoard chessBoard) {
         super(chessBoard);
 
-        distFrmOriAttackDirectionMap = new HashMap<>();
+        pinCheckInformation = new ArrayList<>();
+        chessPieceNumMovesMap = new HashMap<>();
         pinnerPinnedMap = new HashMap<>();
         memoizedPastPositions = new HashMap<>();
         memoizedAttacks  = new HashMap<>();
@@ -70,7 +72,7 @@ public class MoveLogic extends ChessLogic {
         }
 
         // Playable Squares Refiner
-        playableSquaresRefinery(chessPiece, clickedPosition, chessPositions, true);
+        playableSquaresRefinery(chessPiece, clickedPosition, chessPositions, true,true);
     }
 
     private void processNormalMovement(ChessPosition clickedPosition, ChessPosition[] chessPositions) {
@@ -155,14 +157,24 @@ public class MoveLogic extends ChessLogic {
         }
     }
 
-    private List<ChessPosition> playableSquaresRefinery(ChessPiece chessPiece, ChessPosition position, ChessPosition[] chessPositions, boolean isFromClick) {
-        if (memoizedPastPositions.containsKey(chessPiece) && isFromClick && !chessBoard.pieceInCheck) {
+    List<ChessPosition> playableSquaresRefinery(ChessPiece chessPiece, ChessPosition position, ChessPosition[] chessPositions, boolean canSetAttack, boolean isFromClick) {
+        boolean pieceIsPinning = false;
+        for (PinCheckInformation info : pinCheckInformation) {
+            if (chessPiece.equals(info.pinnerPiece())) {
+                pieceIsPinning = true;
+                break;
+            }
+        }
+
+        if (memoizedPastPositions.containsKey(chessPiece) && isFromClick && !chessBoard.pieceInCheck && !pieceIsPinning) {
 
             pastChessPosition = position;
 
-            setAttackedPositions(chessPiece, memoizedAttacks.get(chessPiece), isFromClick);
+            if (canSetAttack) {
+                setAttackedPositions(chessPiece, memoizedAttacks.get(chessPiece), true);
+            }
 
-            enableRefinedPlayableSquares(chessPiece, memoizedPastPositions.get(chessPiece), isFromClick);
+            enableRefinedPlayableSquares(chessPiece, memoizedPastPositions.get(chessPiece), true);
 
             return memoizedAttacks.get(chessPiece);
         }
@@ -176,243 +188,269 @@ public class MoveLogic extends ChessLogic {
         }
         pastPositions = new ArrayList<>();
 
+
         memoizedAttacks.put(chessPiece, attackedPositions);
         memoizedPastPositions.put(chessPiece, pastPositions);
-
 
         List<ChessDirection> pieceVectors = new ArrayList<>(new LinkedHashSet<>(chessPiece.getPlayableDirections()));
 
         if (position.getChessPiece() != null) {
+            // Castling
             if (chessPiece instanceof Castlable castlablePiece && !chessBoard.pieceInCheck && chessBoard.castlingAllowed) {
-                if (!castlablePiece.hasCastled() && !chessPiece.hasMoved()) {
-                    HashMap<PieceScalar, CastleVector> castleDirections = castlablePiece.getInitializedCastleDirections();
-                    castleDirections.forEach((scalar, castleVector) -> {
-                        ChessPiece terminalPiece = chessPositions[castleVector.getTerminalPoint().getBtnID()].getChessPiece();
-                        boolean terminalPieceConditionals = terminalPiece != null && !terminalPiece.hasMoved();
-                        if (terminalPieceConditionals) {
-                            boolean vectorLineSegmentEmpty = false;
-
-                            for (Coordinate coordinate : castleVector) {
-                                if (chessPiece instanceof Checkable && chessBoard.checkAllowed) {
-                                    ChessPosition posOfFocus = chessBoard.chessPositions[coordinate.getBtnID()];
-                                    if (posOfFocus != null && posOfFocus.isAttacked()) {
-                                        break;
-                                    }
-                                }
-                                if (coordinate.equals(castleVector.getTerminalPoint())) {
-                                    vectorLineSegmentEmpty = true;
-                                    break;
-                                }
-                                if (chessPositions[coordinate.getBtnID()].getChessPiece() != null) {
-                                    break;
-                                }
-                            }
-
-                            if (castleVector.getCastleDependent() != null) {
-                                if (vectorLineSegmentEmpty && castleVector.getCastleDependent().isOnStart()) {
-                                    for (Coordinate coordinate : scalar) {
-                                        ChessPosition posOfCoord = chessPositions[coordinate.getBtnID()];
-                                        //posOfCoord.setDisable(false);
-                                        pastPositions.add(posOfCoord);
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
+                determineCastlingMoves(chessPiece, castlablePiece, chessPositions);
             }
 
+            // Specific attack vectors
             if (chessPiece instanceof SpecifyCapture) {
-                List<ChessDirection> capturableSquares = ((SpecifyCapture)chessPiece).getCapturableMoves();
-                for (ChessDirection direction : capturableSquares) {
-                    boolean pieceInWay = false;
-                    boolean checkablePieceInWay = false;
-                    boolean firstPotentialPin = false;
-                    ChessPiece possiblePin = null;
+                determineSpecificCaptureMoves(chessPiece, chessPositions, attackedPositions);
+            }
 
-                    int distFromOrigin = -1;
-                    for (Coordinate coord : direction) {
-                        distFromOrigin++;
+            // General vectors
+            determineGeneralMoves(chessPiece, chessPositions, pieceVectors, attackedPositions);
+        }
 
-                        ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
-                        ChessPiece coordinatePiece = posOfCoord.getChessPiece();
-                        boolean posHasChessPiece = coordinatePiece != null;
+        if (canSetAttack) {
+            setAttackedPositions(chessPiece, attackedPositions, isFromClick);
+        }
 
-                        if (chessPiece instanceof Checkable && chessBoard.checkMateAllowed) {
-                            boolean posOfCoordAttackedByOtherTeam = false;
-                            if (posOfCoord.isAttacked()) {
-                                for (ChessPiece attacker : posOfCoord.attackers) {
-                                    if (attacker != null && attacker.getTeam() != chessPiece.getTeam()) {
-                                        //checkAndAttackDirection.put(checkable, direction);
-                                        posOfCoordAttackedByOtherTeam = true;
-                                    }
-                                }
-                            }
-                            if (posOfCoordAttackedByOtherTeam) {
+        enableRefinedPlayableSquares(chessPiece, pastPositions, isFromClick);
+        chessPieceNumMovesMap.put(chessPiece, numMoves);
+
+        return attackedPositions;
+    }
+
+    private void determineCastlingMoves(ChessPiece chessPiece, Castlable castlablePiece, ChessPosition[] chessPositions) {
+        if (!castlablePiece.hasCastled() && !chessPiece.hasMoved()) {
+            HashMap<PieceScalar, CastleVector> castleDirections = castlablePiece.getInitializedCastleDirections();
+            castleDirections.forEach((scalar, castleVector) -> {
+                ChessPiece terminalPiece;
+                try {
+                    terminalPiece = chessPositions[castleVector.getTerminalPoint().getBtnID()].getChessPiece();
+                } catch (NoSuchElementException nsee) {
+                    terminalPiece = null;
+                }
+
+                boolean terminalPieceConditionals = terminalPiece != null && !terminalPiece.hasMoved();
+                if (terminalPieceConditionals) {
+                    boolean vectorLineSegmentEmpty = false;
+
+                    for (Coordinate coordinate : castleVector) {
+                        if (chessPiece instanceof Checkable && chessBoard.checkAllowed) {
+                            ChessPosition posOfFocus = chessBoard.chessPositions[coordinate.getBtnID()];
+                            if (posOfFocus != null && posOfFocus.isAttacked()) {
                                 break;
                             }
                         }
-
-                        if (!pieceInWay || checkablePieceInWay) {
-                            attackedPositions.add(posOfCoord);
+                        if (coordinate.equals(castleVector.getTerminalPoint())) {
+                            vectorLineSegmentEmpty = true;
+                            break;
                         }
-
-                        if (!firstPotentialPin && posHasChessPiece) {
-                            if (!pieceInWay) {
-                                //if (isFromClick) {
-                                    pastPositions.add(posOfCoord);
-                                //}
-                            }
-                        }
-
-                        if (posHasChessPiece) {
-                            boolean chessPieceIsSpecialPiece = coordinatePiece instanceof SpecialPiece;
-                            boolean chessPieceIsCheckable = coordinatePiece instanceof Checkable;
-
-                            if (firstPotentialPin && chessPieceIsCheckable) {
-                                possiblePin.setPinned(true);
-                                pinnerPinnedMap.put(chessPiece, possiblePin);
-                            }
-
-                            if (chessPiece.getTeam() != coordinatePiece.getTeam()) {
-                                if (coordinatePiece instanceof Checkable && chessBoard.checkMateAllowed) {
-                                    distFrmOriAttackDirectionMap.put(++distFromOrigin, direction);
-                                }
-                            }
-
-                            if (!chessPieceIsSpecialPiece) {
-                                if (!ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
-
-                                    if (chessPieceIsCheckable && !pieceInWay) {
-                                        checkablePieceInWay = true;
-                                    }
-
-                                    pieceInWay = true;
-
-
-                                    if (!chessPieceIsCheckable && firstPotentialPin) {
-                                        break;
-                                    }
-                                }
-
-                                if (!firstPotentialPin) {
-                                    possiblePin = coordinatePiece;
-                                    firstPotentialPin = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            for (ChessDirection direction : pieceVectors) {
-                boolean pieceInWay = false;
-                boolean checkablePieceInWay = false;
-                boolean firstPotentialPin = false;
-                ChessPiece possiblePin = null;
-
-                int distFromOrigin = -1;
-                for (Coordinate coord : direction) {
-                    distFromOrigin++;
-
-                    ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
-                    ChessPiece coordinatePiece = posOfCoord.getChessPiece();
-                    boolean posHasChessPiece = coordinatePiece != null;
-
-                    if (chessPiece instanceof Checkable && chessBoard.checkMateAllowed) {
-                        boolean posOfCoordAttackedByOtherTeam = false;
-                        if (posOfCoord.isAttacked()) {
-                            for (ChessPiece attacker : posOfCoord.attackers) {
-                                if (attacker != null && attacker.getTeam() != chessPiece.getTeam()) {
-                                    //checkAndAttackDirection.put(checkable, direction);
-                                    posOfCoordAttackedByOtherTeam = true;
-                                }
-                            }
-                        }
-                        if (posOfCoordAttackedByOtherTeam) {
+                        if (chessPositions[coordinate.getBtnID()].getChessPiece() != null) {
                             break;
                         }
                     }
 
-                    if (chessPiece instanceof SpecifyCapture) { // Fixes pawns showing what is directly in front of them
-                        if (!posHasChessPiece) {
-                            //posOfCoord.setDisable(false);
-                            if (!pieceInWay && !firstPotentialPin) {
-                                //if (isFromClick) {
-                                    pastPositions.add(posOfCoord);
-                                //}
-                            }
-                        }
-                    } else {
-                        //posOfCoord.setDisable(false);
-
-                        if (!pieceInWay || checkablePieceInWay) {
-                            attackedPositions.add(posOfCoord);
-                        }
-
-                        if (!firstPotentialPin) { //
-                            if (!pieceInWay) { //isFromClick
+                    if (castleVector.getCastleDependent() != null) {
+                        if (vectorLineSegmentEmpty && castleVector.getCastleDependent().isOnStart()) {
+                            for (Coordinate coordinate : scalar) {
+                                ChessPosition posOfCoord = chessPositions[coordinate.getBtnID()];
                                 pastPositions.add(posOfCoord);
                             }
                         }
                     }
+                }
+            });
+        }
+    }
 
-                    if (posHasChessPiece) {
-                        boolean chessPieceIsSpecialPiece = coordinatePiece instanceof SpecialPiece;
-                        boolean chessPieceIsCheckable = coordinatePiece instanceof Checkable;
+    private void determineSpecificCaptureMoves(ChessPiece chessPiece, ChessPosition[] chessPositions, ArrayList<ChessPosition> attackedPositions) {
+        List<ChessDirection> capturableSquares = ((SpecifyCapture)chessPiece).getCapturableMoves();
+        for (ChessDirection direction : capturableSquares) {
 
-                        if (firstPotentialPin && chessPieceIsCheckable) {
-                            possiblePin.setPinned(true);
-                            pinnerPinnedMap.put(chessPiece, possiblePin);
+            boolean pieceInWay = false;
+            boolean checkablePieceInWay = false;
+            boolean firstPotentialPin = false;
+            ChessPiece possiblePin = null;
+
+            int distFromOrigin = 0;
+            for (Coordinate coord : direction) {
+                distFromOrigin++;
+
+                ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
+                ChessPiece coordinatePiece = posOfCoord.getChessPiece();
+                boolean posHasChessPiece = coordinatePiece != null;
+
+                if (chessPiece instanceof Checkable && chessBoard.checkMateAllowed) {
+                    if (isCheckableInDanger(chessPiece, posOfCoord)) {
+                        break;
+                    }
+                }
+
+                if (!pieceInWay || checkablePieceInWay) {
+                    attackedPositions.add(posOfCoord);
+                }
+
+                if (!firstPotentialPin && posHasChessPiece) {
+                    if (!pieceInWay) {
+                        pastPositions.add(posOfCoord);
+                    }
+                }
+
+                if (posHasChessPiece) {
+                    boolean chessPieceIsSpecialPiece = coordinatePiece instanceof SpecialPiece;
+                    boolean chessPieceIsCheckable = coordinatePiece instanceof Checkable;
+
+                    if (firstPotentialPin && chessPieceIsCheckable) {
+                        possiblePin.setPinned(true);
+                        pinnerPinnedMap.put(chessPiece, possiblePin);
+                    }
+
+                    if (chessPiece.getTeam() != coordinatePiece.getTeam()) {
+                        if (coordinatePiece instanceof Checkable && chessBoard.checkMateAllowed) {
+                            PinCheckInformation info = new PinCheckInformation(
+                                    ++distFromOrigin, direction, coordinatePiece, chessPiece
+                            );
+
+                            pinCheckInformation.add(info);
+                        }
+                    }
+
+                    if (!chessPieceIsSpecialPiece) {
+                        if (!ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
+
+                            if (chessPieceIsCheckable && !pieceInWay) {
+                                checkablePieceInWay = true;
+                            }
+
+                            pieceInWay = true;
+
+
+                            if (!chessPieceIsCheckable && firstPotentialPin) {
+                                break;
+                            }
                         }
 
-                        // Coordinate sees a checkable piece
-                        if (!(chessPiece instanceof SpecifyCapture) && chessPiece.getTeam() != coordinatePiece.getTeam()) {
-                            if (coordinatePiece instanceof Checkable && chessBoard.checkMateAllowed) {
-                                distFrmOriAttackDirectionMap.put(++distFromOrigin, direction);
-                            }
-                        }
-
-                        if (!chessPieceIsSpecialPiece) {
-                            if (!ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
-
-                                if (chessPieceIsCheckable && !pieceInWay) {
-                                    checkablePieceInWay = true;
-                                }
-
-                                pieceInWay = true;
-
-                                if (!chessPieceIsCheckable && firstPotentialPin) {
-                                    break;
-                                }
-                            }
-
-                            if (!firstPotentialPin) {
-                                possiblePin = coordinatePiece;
-                                firstPotentialPin = true;
-                            }
+                        if (!firstPotentialPin && coordinatePiece.getTeam() != chessPiece.getTeam()) {
+                            possiblePin = coordinatePiece;
+                            firstPotentialPin = true;
                         }
                     }
                 }
             }
         }
-
-        setAttackedPositions(chessPiece, attackedPositions, isFromClick);
-
-        enableRefinedPlayableSquares(chessPiece, pastPositions, isFromClick);
-
-        return attackedPositions;
     }
 
+    private void determineGeneralMoves(ChessPiece chessPiece, ChessPosition[] chessPositions, List<ChessDirection> pieceVectors, List<ChessPosition> attackedPositions) {
+        for (ChessDirection direction : pieceVectors) {
+            boolean pieceInWay = false;
+            boolean checkablePieceInWay = false;
+            boolean firstPotentialPin = false;
+            ChessPiece possiblePin = null;
+
+            int distFromOrigin = 0;
+            for (Coordinate coord : direction) {
+
+                ChessPosition posOfCoord = chessPositions[coord.getBtnID()];
+                ChessPiece coordinatePiece = posOfCoord.getChessPiece();
+                boolean posHasChessPiece = coordinatePiece != null;
+
+                if (chessPiece instanceof Checkable && chessBoard.checkMateAllowed) {
+                    if (isCheckableInDanger(chessPiece, posOfCoord)) {
+                        break;
+                    }
+                }
+
+                if (chessPiece instanceof SpecifyCapture) { // Fixes pawns showing what is directly in front of them
+                    if (!posHasChessPiece) {
+                        if (!pieceInWay && !firstPotentialPin) {
+                            pastPositions.add(posOfCoord);
+                        }
+                    }
+                } else {
+
+                    if (!pieceInWay || (checkablePieceInWay)) {
+                        attackedPositions.add(posOfCoord);
+                    }
+
+                    if (!firstPotentialPin) {
+                        if (!pieceInWay) {
+                            pastPositions.add(posOfCoord);
+                        }
+                    }
+                }
+
+                if (posHasChessPiece) {
+                    boolean chessPieceIsSpecialPiece = coordinatePiece instanceof SpecialPiece;
+                    boolean chessPieceIsCheckable = coordinatePiece instanceof Checkable;
+                    boolean chessPieceIsCheckableAndDifTeam = coordinatePiece instanceof Checkable && chessPiece.getTeam() != coordinatePiece.getTeam();
+
+
+                    if (firstPotentialPin && chessPieceIsCheckableAndDifTeam) {
+                        possiblePin.setPinned(true);
+                        pinnerPinnedMap.put(chessPiece, possiblePin);
+                    }
+
+                    // Coordinate sees a checkable piece
+                    if (!(chessPiece instanceof SpecifyCapture) && chessPiece.getTeam() != coordinatePiece.getTeam()) {
+                        if (coordinatePiece instanceof Checkable && chessBoard.checkMateAllowed) {
+                            PinCheckInformation info = new PinCheckInformation(
+                                    ++distFromOrigin, direction, coordinatePiece, chessPiece
+                            );
+
+                            pinCheckInformation.add(info);
+                        }
+                    }
+
+                    if (!chessPieceIsSpecialPiece) {
+                        if (!ChessAnnotation.hasAnnotation(chessPiece.getClass(), Xray.class)) {
+
+                            if (chessPieceIsCheckable && !pieceInWay && coordinatePiece.getTeam() != chessPiece.getTeam()) {
+                                checkablePieceInWay = true;
+                            }
+
+                            pieceInWay = true;
+
+                            if (!chessPieceIsCheckable && firstPotentialPin) {
+                                break;
+                            }
+                        }
+
+                        if (!firstPotentialPin && coordinatePiece.getTeam() != chessPiece.getTeam()) {
+                            possiblePin = coordinatePiece;
+                            firstPotentialPin = true;
+                        }
+                    }
+                }
+
+                distFromOrigin++;
+            }
+        }
+    }
+
+    private boolean isCheckableInDanger(ChessPiece chessPiece, ChessPosition posOfCoord) {
+        boolean posOfCoordAttackedByOtherTeam = false;
+        if (posOfCoord.isAttacked()) {
+            for (ChessPiece attacker : posOfCoord.attackers) {
+                if (attacker != null && attacker.getTeam() != chessPiece.getTeam()) {
+                    posOfCoordAttackedByOtherTeam = true;
+                    break;
+                }
+            }
+        }
+
+        return posOfCoordAttackedByOtherTeam;
+    }
+
+
     private void setAttackedPositions(ChessPiece chessPiece, List<ChessPosition> attackedPositions, boolean isFromClick) {
-        if (chessBoard.checkMateAllowed) {
+        if (chessBoard.checkMateAllowed && !isFromClick && chessPiece.getTeam() != chessBoard.playerTeam) { // SET TO EQUALS
+
             for (ChessPosition pastChessPosition : attackedPositions) {
 
-                if (chessPiece.getTeam() != chessBoard.playerTeam && !isFromClick) {
+                if (chessPiece.getTeam() != chessBoard.playerTeam) {
                     pastChessPosition.attackers = new HashSet<>();
                     pastChessPosition.attackers.add(chessPiece);
                     pastChessPosition.setIsAttacked(true);
-                    pastChessPosition.setText("ATTK");
                 }
             }
         }
@@ -425,12 +463,12 @@ public class MoveLogic extends ChessLogic {
                     .map(ChessPosition::getCoordinate)
                     .toList();
 
-            for (Map.Entry<Integer, ChessDirection> checkMap : distFrmOriAttackDirectionMap.entrySet()) {
+            for (PinCheckInformation info : pinCheckInformation) {
                 int distFromOrigin = 0;
 
-                for (Coordinate coord : checkMap.getValue().getDirectionFromOrigin()) {
+                for (Coordinate coord : info.pinCheckDirection().getDirectionFromOrigin()) {
                     if (convertedPosToCoord.contains(coord)) {
-                        if (checkMap.getKey() >= distFromOrigin) {// making equals fixes piece not being able to capture when piece in check
+                        if (info.distFromOrigin() >= distFromOrigin && info.pinnedPiece().getTeam() == chessPiece.getTeam()) { // making equals fixes piece not being able to capture when piece in check
 
                             ChessPiece pieceInAttackVector = chessBoard.chessPositions[coord.getBtnID()].getChessPiece();
 
@@ -462,6 +500,19 @@ public class MoveLogic extends ChessLogic {
             return;
         }
 
+        if (chessPiece instanceof Checkable) {
+            for (ChessPosition chessPosition : pastPositions) {
+                if (!chessPosition.isAttacked() && (chessPosition.getChessPiece() == null || (chessPosition.getChessPiece() != null && chessPosition.getChessPiece().getTeam() != chessPiece.getTeam()))) {
+                    if (isFromClick) {
+                        chessPosition.setDisable(false);
+                    }
+                    numMoves++;
+                }
+            }
+
+            return;
+        }
+
         for (ChessPosition chessPosition : pastPositions) {
             if (chessPosition.getChessPiece() == null || (chessPosition.getChessPiece() != null && chessPosition.getChessPiece().getTeam() != chessPiece.getTeam())) {
                 if (isFromClick) {
@@ -474,7 +525,7 @@ public class MoveLogic extends ChessLogic {
 
     private void resetMetaData() {
         chessBoard.pieceInCheck = false;
-        distFrmOriAttackDirectionMap.clear();
+        pinCheckInformation.clear();
         memoizedPastPositions.clear();
         memoizedAttacks.clear();
     }
@@ -491,7 +542,7 @@ public class MoveLogic extends ChessLogic {
         enpassant.setPosition(chessBoard.getChessPositions()[newBtnId]);
         chessBoard.chessPieces.add(enpassant);
         onePlaceUnderPawn.setChessPiece(enpassant);
-        chessBoard.getChessPositions()[newBtnId].setText("Enpassant");
+        onePlaceUnderPawn.setText("Enpassant");
     }
 
     private void removeSpecialPieces() {
@@ -518,21 +569,12 @@ public class MoveLogic extends ChessLogic {
 
                 if (posNotNull) {
                     boolean posHasChessPiece = pos.getChessPiece() != null;
-                    boolean pieceTeamNotCurrentTeam;
-
-                    if (posHasChessPiece && pos.getChessPiece().getTeam() != null) {
-
-                        Team pieceTeam = pos.getChessPiece().getTeam();
-                        pieceTeamNotCurrentTeam = !pieceTeam.name().equals(chessBoard.playerTeam.name());
-                    } else {
-                        pieceTeamNotCurrentTeam = false;
-                    }
+                    boolean pieceTeamNotCurrentTeam = isPieceTeamCurrentTeam(pos, posHasChessPiece);
 
                     if (!posHasChessPiece || pieceTeamNotCurrentTeam) {
                         pos.attackers.remove(pastChessPosition.getChessPiece()); // Checkmate
                         if (pos.attackers.isEmpty()) {
                             pos.setIsAttacked(false);
-                            pos.setText("");
                         }
                     }
                 }
@@ -550,14 +592,7 @@ public class MoveLogic extends ChessLogic {
 
                 if (posNotNull) {
                     boolean posHasChessPiece = pos.getChessPiece() != null;
-                    boolean pieceTeamNotCurrentTeam;
-
-                    if (posHasChessPiece && pos.getChessPiece().getTeam() != null) {
-                        Team pieceTeam = pos.getChessPiece().getTeam();
-                        pieceTeamNotCurrentTeam = !pieceTeam.name().equals(chessBoard.playerTeam.name());
-                    } else {
-                        pieceTeamNotCurrentTeam = false;
-                    }
+                    boolean pieceTeamNotCurrentTeam = isPieceTeamCurrentTeam(pos, posHasChessPiece);
 
                     if (!posHasChessPiece || pieceTeamNotCurrentTeam) {
                         pos.setDisable(true);
@@ -565,6 +600,19 @@ public class MoveLogic extends ChessLogic {
                 }
             }
         }
+    }
+
+    private boolean isPieceTeamCurrentTeam(ChessPosition pos, boolean posHasChessPiece) {
+        boolean pieceTeamNotCurrentTeam;
+
+        if (posHasChessPiece && pos.getChessPiece().getTeam() != null) {
+            Team pieceTeam = pos.getChessPiece().getTeam();
+            pieceTeamNotCurrentTeam = !pieceTeam.name().equals(chessBoard.playerTeam.name());
+        } else {
+            pieceTeamNotCurrentTeam = false;
+        }
+
+        return pieceTeamNotCurrentTeam;
     }
 
     public void move(ChessPosition pastPos, ChessPosition futurePos) {
@@ -611,7 +659,7 @@ public class MoveLogic extends ChessLogic {
 
         // Check
         if (!(chessPiece instanceof Checkable) && chessBoard.checkMateAllowed) {
-            processCheckMate(chessPiece, futurePos);
+            processCheckMate(chessPiece, futurePos); //Analysis of attacks HERE
         }
 
         // Pin
@@ -630,30 +678,30 @@ public class MoveLogic extends ChessLogic {
     void clearAllAttackers() {
         for (ChessPosition pos : chessBoard.chessPositions) {
             pos.attackers.clear();
-            pos.setText("");
             pos.setIsAttacked(false);
         }
     }
 
     void addAttackersToNewPos(Team chessPieceTeam, ChessPiece oneOfAllChessPieces, ChessPosition pastPos, ChessPosition futurePos) {
         if (chessPieceTeam == oneOfAllChessPieces.getTeam()) {
-            //for (ChessPosition pos : playableSquaresRefinery(oneOfAllChessPieces, pastPos, chessBoard.chessPositions, false)) {
-                //pos.attackers.remove(oneOfAllChessPieces);
-                //pos.setIsAttacked(false);
-            //}
+            for (ChessPosition pos : playableSquaresRefinery(oneOfAllChessPieces, pastPos, chessBoard.chessPositions, false, false)) {
+                pos.attackers.remove(oneOfAllChessPieces);
+                pos.setIsAttacked(false);
+            }
+
             addAttackers(oneOfAllChessPieces, futurePos);
         }
     }
 
     public void addAttackers(ChessPiece oneOfAllChessPieces, ChessPosition futurePos) {
-        for (ChessPosition pos : playableSquaresRefinery(oneOfAllChessPieces, futurePos, chessBoard.chessPositions, false)) {
+        for (ChessPosition pos : playableSquaresRefinery(oneOfAllChessPieces, futurePos, chessBoard.chessPositions, true, false)) {
             pos.attackers.add(oneOfAllChessPieces);
             pos.setIsAttacked(true);
         }
     }
 
     public boolean scanForCheck(ChessPiece chessPiece, ChessPosition futurePos) {
-        for (ChessPosition position : playableSquaresRefinery(chessPiece, futurePos, chessBoard.chessPositions, false)) {
+        for (ChessPosition position : playableSquaresRefinery(chessPiece, futurePos, chessBoard.chessPositions, true, false)) {
             if (position.getChessPiece() instanceof Checkable && position.getChessPiece().getTeam() != chessPiece.getTeam()) {
                 chessBoard.fireEvent(new CheckEvent(position.getChessPiece()));
                 return true;
@@ -664,15 +712,20 @@ public class MoveLogic extends ChessLogic {
     }
 
     public void processCheckMate(ChessPiece chessPiece, ChessPosition futurePos) {
-        scanForCheck(chessPiece, futurePos);
+        if (scanForCheck(chessPiece, futurePos)) {
+            pinCheckInformation.clear();
 
-        if (chessBoard.pieceInCheck) {
             int totalMoves = 0;
+
+            System.out.println();
+
             for (ChessPiece oneOfAllChessPieces : chessBoard.chessPieces) {
-                if (oneOfAllChessPieces.getTeam() != chessPiece.getTeam()) {
-                    playableSquaresRefinery(oneOfAllChessPieces, futurePos, chessBoard.chessPositions, false);
-                    totalMoves += numMoves;
-                    System.out.println(oneOfAllChessPieces + ": " + numMoves);
+                playableSquaresRefinery(oneOfAllChessPieces, oneOfAllChessPieces.getPosition(), chessBoard.chessPositions, false, false);
+            }
+
+            for (Map.Entry<ChessPiece, Integer> numMovesEntry : chessPieceNumMovesMap.entrySet()) {
+                if (numMovesEntry.getKey().getTeam() != chessPiece.getTeam()) {
+                    totalMoves += numMovesEntry.getValue();
                 }
             }
 
@@ -710,17 +763,14 @@ public class MoveLogic extends ChessLogic {
                         if (possiblePin) {
                             if (pieceInVector instanceof Checkable) {
                                 verifiedPin = mayBePinned;
-                                break;
-                            } else {
-                                break;
                             }
+                            break;
 
                         }
 
-                        if (!possiblePin) {
-                            possiblePin = true;
-                            mayBePinned = pieceInVector;
-                        }
+                        possiblePin = true;
+                        mayBePinned = pieceInVector;
+
                     }
                 }
             }
@@ -775,7 +825,7 @@ public class MoveLogic extends ChessLogic {
 
         //CheckMate
         if (chessBoard.checkMateAllowed) {
-            for (ChessPosition piecePlayables : playableSquaresRefinery(instigator, pastPos, chessBoard.chessPositions, false)) {
+            for (ChessPosition piecePlayables : playableSquaresRefinery(instigator, pastPos, chessBoard.chessPositions, false, false)) {
                 piecePlayables.attackers.remove(instigator);
             }
         }
@@ -794,11 +844,12 @@ public class MoveLogic extends ChessLogic {
             chessBoard.chessPieces.remove(pos.chessPiece);
 
             //CheckMate
-            for (ChessPosition piecePlayables : playableSquaresRefinery(pos.chessPiece, pos, chessBoard.chessPositions, false)) {
+            for (ChessPosition piecePlayables : playableSquaresRefinery(pos.chessPiece, pos, chessBoard.chessPositions, false, false)) {
                 piecePlayables.attackers.remove(pos.chessPiece);
-                piecePlayables.setText("");
             }
         }
+
+        chessPieceNumMovesMap.remove(pos.chessPiece);
 
         pos.setText("");
         pos.setChessPiece(null);

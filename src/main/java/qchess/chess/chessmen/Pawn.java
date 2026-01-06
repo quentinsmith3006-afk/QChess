@@ -28,10 +28,6 @@ public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpa
 
         int row = getRow();
 
-        if (row == 7 || row == 0) {
-            return moves;
-        }
-
         int momentum = team == Team.BLACK ? -1 : 1;
 
         boolean isWhiteOnStart = (row == 1);
