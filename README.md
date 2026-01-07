@@ -378,6 +378,7 @@ Internally, if not specified *the framework assumes you want to reflect both*.
 
 To reflect either, all you have to do is the following:
 > @VerticalSymmetry(SpecificReflection.PLAYABLES)
+> 
 > @HorizonalSymmetry(SpecificReflection.CAPTURE)
 
 You can make those specifications in any way you need.
