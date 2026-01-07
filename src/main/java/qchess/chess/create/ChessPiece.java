@@ -54,7 +54,7 @@ public abstract class ChessPiece {
     public List<ChessDirection> getPlayableDirections() {
         List<ChessDirection> moves;
         try {
-            moves = ChessAnnotation.applyAnnotations(this);
+            moves = ChessAnnotation.applyAnnotations(this, PlayablesType.PLAYABLES);
         } catch (NullPointerException npe) {
             throw new IllegalStateException("Either there is no chessboard or chess piece is null");
         }

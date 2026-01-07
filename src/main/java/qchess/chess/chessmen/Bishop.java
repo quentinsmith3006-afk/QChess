@@ -1,8 +1,6 @@
 package qchess.chess.chessmen;
 
-import qchess.chess.create.ChessPiece;
-import qchess.chess.create.Coordinate;
-import qchess.chess.create.Team;
+import qchess.chess.create.*;
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceVector;
 import qchess.chess.create.interfaces.SpecifyCapture;
