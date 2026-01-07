@@ -1,5 +1,3 @@
-package qchess.chess;
-
 import javafx.application.Application;
 
 public class ChessLauncher {
