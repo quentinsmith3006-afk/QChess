@@ -63,13 +63,21 @@ castling bug where KING can't be placed on sides b/c castle vector breaks (fixed
 
 numMoves doesn't count specify captures (Fixed)
 
-Make sure users of the API can access all chess pieces
+Jan 05
 
-Chess pieces can still capture on their own enpassant squares. I suspect it has smt to do with memoize
+Chess pieces can still capture on their own enpassant squares. I suspect it has smt to do with memoize (fixed)
 
-Chessmen can still pin their fellow brethren
+Chessmen can still pin their fellow brethren (fixed)
 
-Make sure there is a way to handle pieces who can move on their castle pos
+Checkmate is still broken -> Some pieces moves are not counted leading to premature checkmate call (fixed but I dont like the fix)
+
+If playing on single team (black), the attack squares are enabled causing the checkables to not be able to move (fixed)
+
+Make sure users of the API can access all chess pieces (done)
+
+Make sure there is a way to handle pieces who can move on their castle pos (nah)
+
+
 
 
 
@@ -80,9 +88,11 @@ Make sure there is a way to handle pieces who can move on their castle pos
 
 
 NEW FEATURES TO BE ADDED
-I need to add stalemate -> mainly the stalemate event activate whenever stalemate condition occurs
+Add a way to reset the chessboard.
 
-Chess notation -> I should be able to place and make chessmen using this and import chess games. (very important for using stockfish API)
+I need to add stalemate -> mainly the stalemate event activate whenever stalemate condition occurs (done probably - untested)
+
+Chess notation -> I should be able to place and make chessmen using this and import chess games. (all I need to do is test this)
 
 Chess 960 board and ability to implement 960 castling (hard)
 

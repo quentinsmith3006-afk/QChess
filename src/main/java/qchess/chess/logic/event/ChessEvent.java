@@ -7,15 +7,15 @@ import qchess.chess.logic.ChessBoard;
 
 public class ChessEvent extends Event {
     public static final EventType<Event> ANY = new EventType<>(Event.ANY,"CHESS_EVENT");
-    public ChessPiece chessPiece;
+    public ChessPiece instigator;
 
-    public ChessEvent(EventType<? extends ChessEvent> eventType, ChessPiece chessPiece) {
-        super(eventType);
+    public ChessEvent(EventType<? extends ChessEvent> event, ChessPiece instigator) {
+        super(event);
 
-        this.chessPiece = chessPiece;
+        this.instigator = instigator;
     }
 
-    public ChessPiece getChessPiece() {
-        return chessPiece;
+    public ChessPiece getInstigator() {
+        return instigator;
     }
 }

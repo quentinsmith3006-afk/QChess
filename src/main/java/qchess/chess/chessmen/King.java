@@ -30,6 +30,7 @@ public class King extends ChessPiece implements Checkable, Castlable {
     public List<ChessDirection> getRawPlayableDirections() {
         List<ChessDirection> moves = new ArrayList<>();
 
+
         PieceScalar bottomLeft = new PieceScalar(this.coordinate, new Coordinate(getRow() - 1, getCol() - 1));
         PieceScalar bottom = new PieceScalar(this.coordinate, new Coordinate(getRow() - 1, getCol()));
         PieceScalar left = new PieceScalar(this.coordinate,  new Coordinate(getRow(), getCol() - 1));
@@ -37,6 +38,10 @@ public class King extends ChessPiece implements Checkable, Castlable {
         moves.add(bottomLeft);
         moves.add(bottom);
         moves.add(left);
+
+        Rook rook = new Rook(this.coordinate, this.team);
+        moves.addAll(rook.getPlayableDirections());
+
         return moves;
     }
 

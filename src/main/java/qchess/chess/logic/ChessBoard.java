@@ -16,6 +16,7 @@ import qchess.chess.logic.event.*;
 import qchess.chess.logic.promotion.PromotionMenu;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 
@@ -31,9 +32,11 @@ public class ChessBoard extends GridPane {
     protected boolean switchTeamAllowed = true;
     protected boolean checkAllowed = true;
     protected boolean pinAllowed = true;
+    protected boolean drawAllowed = true;
     protected boolean pieceInCheck = false;
     protected MoveLogic moveLogic;
     private boolean paused;
+    boolean singleTeam;
 
     protected ChessBoard(String cssClass, String cssFile) {
         this.getStylesheets().add(cssFile);
@@ -42,6 +45,8 @@ public class ChessBoard extends GridPane {
         moveLogic = new MoveLogic(this);
 
         ChessAnnotation.chessAnnotationsInit();
+
+        this.setMaxSize(600, 600);
     }
 
     protected ChessBoard() {
@@ -63,6 +68,19 @@ public class ChessBoard extends GridPane {
                 chessPieces.add(position.chessPiece);
             }
         }
+        boolean whiteTeamExists = false;
+        boolean blackTeamExists = false;
+        for (ChessPiece chessPiece : chessPieces) {
+            if (chessPiece.getTeam() == playerTeam) {
+                whiteTeamExists = true;
+            } else {
+                blackTeamExists = true;
+            }
+        }
+
+        if (!whiteTeamExists || !blackTeamExists) {
+            singleTeam = true;
+        }
 
         initChessEventFilters();
         initChessPieces();
@@ -75,15 +93,24 @@ public class ChessBoard extends GridPane {
             });
 
             this.addEventFilter(PostPromotionEvent.POSTPROMOTION, (ChessEvent me) -> {
-                moveLogic.playableSquaresRefinery(me.chessPiece, me.chessPiece.getPosition(), chessPositions, true, false);
+                moveLogic.playableSquaresRefinery(me.getInstigator(), me.getInstigator().getPosition(), chessPositions, true, false);
             });
         }
         if (switchTeamAllowed) {
             this.addEventFilter(MovementEvent.MOVEMENT, (ChessEvent me) -> this.switchTeams());
         }
-        if (checkMateAllowed) {
+        if (checkAllowed) {
             this.addEventFilter(CheckEvent.CHECK, (ChessEvent me) -> {pieceInCheck = true;});
+
+            if (checkMateAllowed) {
+                this.addEventFilter(CheckMateEvent.CHECK_MATE, event -> {
+                    System.out.println("CHECKMATE");
+                });
+            }
         }
+        this.addEventFilter(DrawEvent.DRAW, even -> {
+            System.out.println("Draw");
+        });
     }
 
     private void initChessPieces() {
@@ -107,7 +134,7 @@ public class ChessBoard extends GridPane {
 
             if (chessPiece.getTeam() == playerTeam) {
                 chessPosition.setDisable(false);
-            } else {
+            } else if (!singleTeam) {
                 moveLogic.addAttackers(chessPiece, chessPosition);
             }
 
@@ -120,6 +147,10 @@ public class ChessBoard extends GridPane {
         }
 
         enableChessPieces();
+
+        if (checkMateAllowed) {
+            initialCheckForCheck();
+        }
     }
 
     public void enableChessPieces() {
@@ -144,8 +175,6 @@ public class ChessBoard extends GridPane {
             switchTeams();
             enableChessPieces();
         }
-
-        initialCheckForCheck();
     }
 
     public void initialCheckForCheck() {
@@ -170,6 +199,18 @@ public class ChessBoard extends GridPane {
         this.playerTeam = team;
     }
 
+    public void reset() {
+        moveLogic = new MoveLogic(this);
+
+        ChessAnnotation.chessAnnotationsInit();
+
+        this.launchGame();
+    }
+
+    public ArrayList<ChessPiece> getChessPieces() {
+        return new ArrayList<>(chessPieces);
+    }
+
     public MoveLogic getMoveLogic() {
         return moveLogic;
     }
@@ -178,8 +219,28 @@ public class ChessBoard extends GridPane {
         return chessPositions;
     }
 
+    public ChessPiece getChessPiece(Coordinate coordinate) {
+        return chessPositions[coordinate.getBtnID()].getChessPiece();
+    }
+
     public ChessPiece getChessPiece(int btnID) {
         return chessPositions[btnID].getChessPiece();
+    }
+
+    public void setOnCapture(EventHandler<ChessEvent> captureOperation) {
+        this.addEventHandler(CaptureEvent.CAPTURE, captureOperation);
+    }
+
+    public void setOnPromotion(EventHandler<ChessEvent> promotionOperation) {
+        this.addEventHandler(PromotionEvent.PROMOTION, promotionOperation);
+    }
+
+    public void setOnPostPromotion(EventHandler<ChessEvent> postPromotionOperation) {
+        this.addEventHandler(PostPromotionEvent.POSTPROMOTION, postPromotionOperation);
+    }
+
+    public void setOnEnpassant(EventHandler<ChessEvent> enpassantOperation) {
+        this.addEventHandler(EnpassantEvent.ENPASSANT , enpassantOperation);
     }
 
     public void setOnPieceMovement(EventHandler<ChessEvent> movement) {
@@ -198,8 +259,8 @@ public class ChessBoard extends GridPane {
         this.addEventHandler(ChessEvent.ANY, movement);
     }
 
-    public ChessPiece getChessPiece(Coordinate coordinate) {
-        return chessPositions[coordinate.getBtnID()].getChessPiece();
+    public boolean isSingleTeam() {
+        return singleTeam;
     }
 
     public boolean isPaused() {
@@ -431,6 +492,13 @@ public class ChessBoard extends GridPane {
             return this;
         }
 
+        public Builder disableCheck() {
+
+            chessBoard.checkAllowed = false;
+
+            return this;
+        }
+
         public Builder disablePromotion() {
 
             chessBoard.promotionAllowed = false;
@@ -439,6 +507,16 @@ public class ChessBoard extends GridPane {
         }
 
         public Builder addAll(ChessPiece... chessPieces) {
+            nullBoardCheck(boardType);
+
+            for (ChessPiece chessPiece : chessPieces) {
+                add(chessPiece);
+            }
+
+            return this;
+        }
+
+        public Builder addAll(Collection<ChessPiece> chessPieces) {
             nullBoardCheck(boardType);
 
             for (ChessPiece chessPiece : chessPieces) {

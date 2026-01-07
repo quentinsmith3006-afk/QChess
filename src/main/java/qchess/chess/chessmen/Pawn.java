@@ -19,6 +19,8 @@ public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpa
 
     public Pawn(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WPawn.png","/ChessAssets/BPawn.png");
+
+        canResetNumMovesToDraw = true;
     }
 
     @Override
