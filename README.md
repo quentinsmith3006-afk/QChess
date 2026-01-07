@@ -8,7 +8,7 @@
 ![hi](src/main/resources/ChessAssets/BKing.png)
 ![hi](src/main/resources/ChessAssets/WQueen.png)
 ![hi](src/main/resources/ChessAssets/BPawn.png)
-- - -
+
 ## Background
 After taking CS1302 at UGA I was able to create this over 2025 Christmas break.
 QChessV1 is hardly comparable to this version. QChessV1 is based around Java
@@ -56,17 +56,21 @@ Not yet on maven
 
 ## Grid Systems
 #### Algebraic Notation
-![AlgebraicNotation](readmeresources/AlgebraicNotationSystem.png)
+<img src="readmeresources/AlgebraicNotationSystem.png" width="350" height="350">
+
 This system is not used for internal or chess piece functionality. It primarily serves
 as the way to communicate through chess.
 - - -
+
 #### BtnID System
-![BtnIDSystem](readmeresources/BtnIDSystem.png)
+<img src="readmeresources/BtnIDSystem.png" width="350" height="350">
 This system is used for some internal functionality but will eventually
 be used to allow vectors to go across the chess board.
+
 - - -
+
 #### Coordinate System (the normal one)
-![GridSystem](readmeresources/GridSystem.png)
+<img src="readmeresources/GridSystem.png" width="350" height="350">
 This system is primarily used to create new chess pieces and
 add functionality.
 
