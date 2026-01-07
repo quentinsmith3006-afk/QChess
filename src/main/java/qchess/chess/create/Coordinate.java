@@ -19,7 +19,7 @@ public class Coordinate {
 
     public Coordinate(int row, int col) {
         if (col < ALGEBRAIC.length && col >= 0) {
-            algebraicName = String.format("%s%s", ALGEBRAIC[col], row);
+            algebraicName = String.format("%s%s", ALGEBRAIC[col], row + 1);
         }
         this.row = row;
         this.col = col;
@@ -27,9 +27,8 @@ public class Coordinate {
     }
 
     public Coordinate(int btnID) {
+        this(btnID / ChessBoard.height, btnID % ChessBoard.width);
         this.btnID = btnID;
-        this.row = btnID / ChessBoard.height;
-        this.col = btnID % ChessBoard.width;
     }
 
     public Coordinate(String algebraicNotation) {

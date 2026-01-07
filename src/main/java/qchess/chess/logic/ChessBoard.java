@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.layout.GridPane;
+import javafx.scene.text.Font;
 import qchess.chess.chessmen.*;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
@@ -15,10 +16,7 @@ import qchess.chess.create.interfaces.SpecialPiece;
 import qchess.chess.logic.event.*;
 import qchess.chess.logic.promotion.PromotionMenu;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class ChessBoard extends GridPane {
     public static final int width = 8;
@@ -207,6 +205,10 @@ public class ChessBoard extends GridPane {
         this.launchGame();
     }
 
+    public Team getPlayerTeam() {
+        return playerTeam;
+    }
+
     public ArrayList<ChessPiece> getChessPieces() {
         return new ArrayList<>(chessPieces);
     }
@@ -286,7 +288,10 @@ public class ChessBoard extends GridPane {
 
         private enum BoardType {
             NORMAL,
-            EMPTY
+            EMPTY,
+            ALGEBRAIC,
+            BTNID,
+            GRID
         }
 
         Builder() {
@@ -386,6 +391,15 @@ public class ChessBoard extends GridPane {
             }
         }
 
+        private void showcaseBoardCheck() {
+            switch (boardType) {
+                case ALGEBRAIC:
+                case BTNID:
+                case GRID:
+                    throw new IllegalStateException("Cannot customize rules for a BoardType which is for showcasing.");
+            }
+        }
+
         public Builder emptyChessBoard() {
             exclusivityCheck();
             boardType = BoardType.EMPTY;
@@ -431,6 +445,45 @@ public class ChessBoard extends GridPane {
             return this;
         }
 
+        public Builder algebraicNotationSystem() {
+            exclusivityCheck();
+            emptyChessBoard();
+            boardType = BoardType.ALGEBRAIC;
+
+            for (ChessPosition pos : chessPositions) {
+                pos.setText(pos.coordinate.getAlgebraicName());
+                pos.setFont(new Font("Calibri Bold", 20));
+            }
+
+            return this;
+        }
+
+        public Builder btnIDSystem() {
+            exclusivityCheck();
+            emptyChessBoard();
+            boardType = BoardType.BTNID;
+
+            for (ChessPosition pos : chessPositions) {
+                pos.setText(pos.coordinate.getBtnID() + "");
+                pos.setFont(new Font("Calibri Bold", 20));
+            }
+
+            return this;
+        }
+
+        public Builder gridSystem() {
+            exclusivityCheck();
+            emptyChessBoard();
+            boardType = BoardType.GRID;
+
+            for (ChessPosition pos : chessPositions) {
+                pos.setText( "(" + pos.coordinate.getRow() + ", " + pos.coordinate.getCol() + ")");
+                pos.setFont(new Font("Calibri Bold", 15));
+            }
+
+            return this;
+        }
+
         public Builder stylizeChessPositions(String oddSquaresID, String evenSquaresID, String cssFile) {
             nullBoardCheck(boardType);
 
@@ -464,21 +517,15 @@ public class ChessBoard extends GridPane {
         }
 
         public Builder disableAutoTeamSwitch() {
+            showcaseBoardCheck();
 
             chessBoard.switchTeamAllowed = false;
 
             return this;
         }
 
-        public Builder add(ChessPiece chessPiece) {
-            nullBoardCheck(boardType);
-
-            chessPositions[chessPiece.getBtnID()].setChessPiece(chessPiece);
-
-            return this;
-        }
-
         public Builder disableCastling() {
+            showcaseBoardCheck();
 
             chessBoard.castlingAllowed = false;
 
@@ -486,6 +533,7 @@ public class ChessBoard extends GridPane {
         }
 
         public Builder disableCheckMate() {
+            showcaseBoardCheck();
 
             chessBoard.checkMateAllowed = false;
 
@@ -493,6 +541,7 @@ public class ChessBoard extends GridPane {
         }
 
         public Builder disableCheck() {
+            showcaseBoardCheck();
 
             chessBoard.checkAllowed = false;
 
@@ -500,19 +549,23 @@ public class ChessBoard extends GridPane {
         }
 
         public Builder disablePromotion() {
+            showcaseBoardCheck();
 
             chessBoard.promotionAllowed = false;
 
             return this;
         }
 
+        public Builder disableDraw() {
+            showcaseBoardCheck();
+
+            chessBoard.drawAllowed = false;
+
+            return this;
+        }
+
         public Builder addAll(ChessPiece... chessPieces) {
-            nullBoardCheck(boardType);
-
-            for (ChessPiece chessPiece : chessPieces) {
-                add(chessPiece);
-            }
-
+            addAll(Arrays.asList(chessPieces));
             return this;
         }
 
@@ -522,6 +575,20 @@ public class ChessBoard extends GridPane {
             for (ChessPiece chessPiece : chessPieces) {
                 add(chessPiece);
             }
+
+            return this;
+        }
+
+        public Builder add(ChessPiece chessPiece) {
+            nullBoardCheck(boardType);
+            switch (boardType) {
+                case ALGEBRAIC:
+                case BTNID:
+                case GRID:
+                    throw new IllegalStateException("Cannot add a chess piece to BoardType which is for showcasing.");
+            }
+
+            chessPositions[chessPiece.getBtnID()].setChessPiece(chessPiece);
 
             return this;
         }

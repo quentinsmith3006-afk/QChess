@@ -1,92 +1,3 @@
-New algorithm idea for checkmate
-
-Store all the checkable pieces in a arraylist in chessboard
-
-
-
-cross reference the checkable piece's moves with the moves at the start
-then do it in sequence as each move is clicked.
-
-set chess position boolean beingAttacked to true --> prevents having to cross reference
-
-
-When promoting to something, it must check if the other team is now in check after the promotion
-
-
-
-Jan 1st 2026
-Checkmate occurs prematurely even if a piece can block it
-
-Pinning is not fully implemented or doesnt work
-
-
-Jan 2nd 2026
-Checkmate no longer occurs prematurely and pinning is no longer an issue.
-
-
-
-(fixed)
-New bug: When a piece "blocks" an attack, it cna block at anypoint of that vector including behind the king
-
-(fixed)
-Bug fixed, attack vectors surround King even when a piece is pinned
-
-
-Enpassant is shown even when it isn't a playable piece if you disable switch teams. (Fixed)
-
-Pieces can hit the enpassant piece if disabled switch teams. (Fixed)
-
-Pieces can't move along the attacking vector when they are pinned (fixed)
-
-Doesn't check board for a initial check/checkmate if enabled (fixed)
-
-jan 03
-A piece can be pinned to its own Checkable (Fixed)
-
-Pieces can pin same piece teams to opposite team Checkables (fixed)
-
-jan 04
-black pawns  cant move at the bottom most row (fixed)
-White pawns  cant move at the top most row (fixed)
-
-When pieces promote, checkables dont automatically adjust their playables (fixed)
-
-When checking a checkable, the checkable sides attacks displayed (fixed)
-
-Attack squares can go through same-team pieces (bad) (fixed maybe)
-
-Kings can touch if the king has a supporting piece ?? HOW DO I REPRODUCE IT BRUH (fixed)
-
-If pieces are equidistant from the king as is the checking piece, those pieces can move (Can't reproduce)
-
-castling bug where KING can't be placed on sides b/c castle vector breaks (fixed)
-
-numMoves doesn't count specify captures (Fixed)
-
-Jan 05
-
-Chess pieces can still capture on their own enpassant squares. I suspect it has smt to do with memoize (fixed)
-
-Chessmen can still pin their fellow brethren (fixed)
-
-Checkmate is still broken -> Some pieces moves are not counted leading to premature checkmate call (fixed but I dont like the fix)
-
-If playing on single team (black), the attack squares are enabled causing the checkables to not be able to move (fixed)
-
-Make sure users of the API can access all chess pieces (done)
-
-Make sure there is a way to handle pieces who can move on their castle pos (nah)
-
-
-
-
-
--> After I implement this
-
-
-
-
-
 NEW FEATURES TO BE ADDED
 Add a way to reset the chessboard.
 
@@ -94,12 +5,22 @@ I need to add stalemate -> mainly the stalemate event activate whenever stalemat
 
 Chess notation -> I should be able to place and make chessmen using this and import chess games. (all I need to do is test this)
 
-Chess 960 board and ability to implement 960 castling (hard)
-
 I think thats all I want to add tbh
 
+{ If I have time:
+add the ability to add fractional vectors
+
+add the ability to add annotations to Specify capture vectors
+
+Chess 960 board and ability to implement 960 castling (hard)
+}
 
 
+
+what happens if you put a pawn on its promotion rank at the start
+
+#577370
+B3B3B3 for display hex
 
 
 

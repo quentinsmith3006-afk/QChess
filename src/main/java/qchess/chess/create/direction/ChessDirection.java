@@ -60,10 +60,6 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
         return coordinates.size();
     }
 
-    public static void addAll(List<ChessDirection> directions, ChessDirection... chessDirections) {
-        directions.addAll(Arrays.asList(chessDirections));
-    }
-
     public abstract ChessDirection inverse();
 
     public abstract List<ChessDirection> horizontalReflection();

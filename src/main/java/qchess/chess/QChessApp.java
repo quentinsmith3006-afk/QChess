@@ -32,9 +32,12 @@ public class QChessApp extends Application {
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
                 .emptyChessBoard()
-                .add(new King(new Coordinate(5,5), Team.BLACK))
-                .add(new Bishop(new Coordinate(4,5), Team.BLACK))
-                .add(new Pawn(new Coordinate(1,1), Team.WHITE))
+                .add(new Bishop(new Coordinate(5,5), Team.WHITE))
+                .add(new Pawn(new Coordinate(3,3), Team.BLACK))
+                .add(new Pawn(new Coordinate(7,7), Team.BLACK))
+                .add(new Pawn(new Coordinate(3,7), Team.BLACK))
+                .add(new Pawn(new Coordinate(7,3), Team.BLACK))
+
                 .build()
         ;
 
@@ -66,7 +69,7 @@ public class QChessApp extends Application {
     public void start(Stage stage) throws IOException {
         this.stage = stage;
 
-        root.getChildren().addAll(background, borderPane);
+        root.getChildren().addAll( borderPane);
 
         stage.setScene(scene);
         //stage.setResizable(false);

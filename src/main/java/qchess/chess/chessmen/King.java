@@ -39,9 +39,6 @@ public class King extends ChessPiece implements Checkable, Castlable {
         moves.add(bottom);
         moves.add(left);
 
-        Rook rook = new Rook(this.coordinate, this.team);
-        moves.addAll(rook.getPlayableDirections());
-
         return moves;
     }
 

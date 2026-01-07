@@ -3,6 +3,7 @@ package qchess.chess.logic;
 import qchess.chess.chessmen.Pawn;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
+import qchess.chess.create.PlayablesType;
 import qchess.chess.create.Team;
 import qchess.chess.create.direction.CastleVector;
 import qchess.chess.create.direction.PieceScalar;
@@ -97,7 +98,6 @@ public class MoveLogic extends ChessLogic {
         }
 
         ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
-
 
         if (chessBoard.drawAllowed) {
             Team pastChessPositionTeam = pastChessPiece.getTeam();
@@ -203,7 +203,7 @@ public class MoveLogic extends ChessLogic {
             ChessPiece capturedPiece = position.getChessPiece();
 
             if (movedChessPiece instanceof SpecifyCapture && movedChessPiece instanceof Enpassantable) {
-                List<ChessDirection> capturableSquares = ((SpecifyCapture) movedChessPiece).getCapturableMoves();
+                List<ChessDirection> capturableSquares = ChessAnnotation.applyAnnotations(movedChessPiece, PlayablesType.SPECIFY_CAPTURE);
                 for (ChessDirection vector : capturableSquares) {
                     if (vector.contains(position.coordinate)) {
                         Coordinate coord = capturedPiece.getCoordinate();
@@ -346,7 +346,7 @@ public class MoveLogic extends ChessLogic {
     }
 
     private void determineSpecificCaptureMoves(ChessPiece chessPiece, ChessPosition[] chessPositions, ArrayList<ChessPosition> attackedPositions) {
-        List<ChessDirection> capturableSquares = ((SpecifyCapture)chessPiece).getCapturableMoves();
+        List<ChessDirection> capturableSquares = ChessAnnotation.applyAnnotations(chessPiece, PlayablesType.SPECIFY_CAPTURE);;
         for (ChessDirection direction : capturableSquares) {
 
             boolean pieceInWay = false;
