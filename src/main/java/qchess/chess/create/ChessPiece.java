@@ -7,6 +7,7 @@ import qchess.chess.logic.ChessAnnotation;
 import qchess.chess.logic.ChessPosition;
 
 import java.util.List;
+import java.util.Objects;
 
 public abstract class ChessPiece {
     protected ChessPosition position;
@@ -18,6 +19,7 @@ public abstract class ChessPiece {
     protected ImageView graphic;
     protected int pieceValue;
     protected boolean hasMoved = false;
+    protected boolean canResetNumMovesToDraw = false;
 
     public ChessPiece(Coordinate coordinate, Team team, String WhiteTeamGraphic, String BlackTeamGraphic) {
         this.startCoordinate = coordinate;
@@ -84,6 +86,10 @@ public abstract class ChessPiece {
         return pinned;
     }
 
+    public boolean canResetNumMovesToDraw() {
+        return canResetNumMovesToDraw;
+    }
+
     public void setPinned(boolean pinned) {this.pinned = pinned;}
 
     public Team getTeam() {return team;}
@@ -121,5 +127,17 @@ public abstract class ChessPiece {
     @Override
     public String toString() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        return ((ChessPiece) obj).coordinate.equals(coordinate) && ((ChessPiece) obj).name.equals(name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(coordinate, name);
     }
 }
