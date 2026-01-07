@@ -8,6 +8,5 @@ module qchess.chess {
     requires java.desktop;
 
     opens qchess.chess to javafx.fxml;
-    exports qchess.chess;
     opens qchess.chess.logic to javafx.fxml;
 }
