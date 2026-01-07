@@ -273,9 +273,11 @@ Chess pieces can be given different abilities through the use of interfaces.
         return initializedCastleDirections;
     }
 ```
+
 Castling pieces need a new type of vector called CastleVector. A castlevector is a piecevector, but
 its terminal point is used to identify the co-castling piece--rook in normal chess--. Using *PieceVector.INF* 
 essentially just goes to the end of the board.
+
 ---
 2. #### Checkable
 A checkable does not have any abstract methods to implement but it does change the functionality of the chess piece.
