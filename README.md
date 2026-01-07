@@ -21,26 +21,26 @@ I will use this framework to make a simple chess app that utilizes APIs which wi
 serve as the foreseeable endpoint to my chess endeavors. Until then, I will keep improving this.
 
 ⚠︎ Project Warnings
-: Not fully tested/unstable
-: Not yet fully customizable
-: Enpassant is hard coded (unfortunately)
+* Not fully tested/unstable
+* Not yet fully customizable
+* Enpassant is hard coded (unfortunately)
 
 Features added to version 2:
-: Checkmate
-: Stalemate
-: Events
-: Much more customization options
-: 2 More grid systems
-: Vectors and scalars
-: Overhauled piece movement system
-: + More probably
+* Checkmate
+* Stalemate
+* Events
+* Much more customization options
+* 2 More grid systems
+* Vectors and scalars
+* Overhauled piece movement system
+* and probably more
 
 - -
 
 Future Features
-: Chess960 castling compatability
-: Non-hardcoded enpassant
-: New vector that allows chess piece wall hacks
+* Chess960 castling compatability
+* Non-hardcoded enpassant
+* New vector that allows chess piece wall hacks
 
 ## Contribution
 Feel free to contribute, just run tests and stuff. I will have to approve
