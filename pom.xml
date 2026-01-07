@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.quentinsmith3006-afk</groupId>
-    <artifactId>QChessV2</artifactId>
-    <version>0.1.0</version>
+    <artifactId>QChess</artifactId>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
     <name>QChessV2</name>
 
