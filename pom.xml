@@ -6,7 +6,7 @@
 
     <groupId>io.github.quentinsmith3006-afk</groupId>
     <artifactId>QChess</artifactId>
-    <version>v0.2.0</version>
+    <version>0.2.4</version>
     <packaging>jar</packaging>
     <name>QChessV2</name>
 
