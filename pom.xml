@@ -6,11 +6,9 @@
 
     <groupId>io.github.quentinsmith3006-afk</groupId>
     <artifactId>QChess</artifactId>
-    <version>0.2.0</version>
+    <version>v0.2.0</version>
     <packaging>jar</packaging>
     <name>QChessV2</name>
-
-
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
