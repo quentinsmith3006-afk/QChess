@@ -47,12 +47,13 @@ Feel free to contribute, just run tests and stuff. I will have to approve
 any pushes though.
 
 ## Java Version
-*java 24.0.2 2025-07-15*
+*java version "21.0.9" 2025-10-21 LTS*
 
-*Java(TM) SE Runtime Environment (build 24.0.2+12-54)*
+*Java(TM) SE Runtime Environment (build 21.0.9+7-LTS-338)*
 
 ## Installation
-Not yet on maven
+*0.2.6* is the best version to use currently.
+**https://jitpack.io/#quentinsmith3006-afk/QChess**
 
 ## Grid Systems
 #### Algebraic Notation
