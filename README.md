@@ -155,6 +155,7 @@ vector or scalar and a Rook's moves by (painfully) scalars or (very easily) by v
 ### ♜ Creating a custom piece ♜
 #### Basic chess piece example
 This is essentially a bishop.
+note: *if you do not provide graphical representations of your chess piece, the class name will represent it instead.*
 ```
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceVector;
@@ -375,7 +376,7 @@ and horizontally which creates a traditional bishop.
 
 1. #### Horizontal & Vertical Reflection
 With annotations, you can reflect both playable and capturable squares.
-Internally, if not specified *the framework assumes you want to reflect both*.
+Internally, assuming your chess piece is a instance of SpecifyCapture, if not specified *the framework assumes you want to reflect both*.
 
 To reflect either, all you have to do is the following:
 > @VerticalSymmetry(SpecificReflection.PLAYABLES)
