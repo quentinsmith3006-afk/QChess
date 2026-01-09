@@ -10,14 +10,34 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @author Quentin Smith
+ *
+ * Each PieceScalar requires a {@code start} coordinate as the primary basis at which to compare other coordinates via
+ * distance.
+ *
+ * The {@code start} coordinate essentially acts as an anchor.
+ *
+ * For QChess purposes, all scalars do is hold the coordinate values.
+ *
+ * A scalar is primarily defined by a single point's change in row and column with respect to the start position.
+ */
 public class PieceScalar extends ChessDirection {
     private final ArrayList<Coordinate> uncheckedCoordinates;
 
+    /**
+     * Generates empty piece scalar.
+     * @param start anchor coordinate.
+     */
     public PieceScalar(Coordinate start) {
         super(start);
         uncheckedCoordinates = new ArrayList<>();
     }
 
+    /**
+     * Generates a piece scalar filled with {@code coordinates}.
+     * @param start anchor coordinate.
+     */
     public PieceScalar(Coordinate start, Coordinate... coordinates) {
         super(start);
         uncheckedCoordinates = new ArrayList<>(Arrays.asList(coordinates));
@@ -32,6 +52,13 @@ public class PieceScalar extends ChessDirection {
         this.sort(this.coordinates);
     }
 
+    /**
+     * Adds this coordinate to the PieceScalar.
+     *
+     * Adding coordinates to piece scalars creates a dependency:
+     * if a coordinate closer to start has a piece on it, all other
+     * coordinates after that one will not be displayed.
+     */
     public boolean addCoordinate(Coordinate coordinate) {
         if (PieceScalar.isInBounds(coordinate)) {
             this.coordinates.add(coordinate);
@@ -43,21 +70,32 @@ public class PieceScalar extends ChessDirection {
         return false;
     }
 
-    public static boolean isInBounds(Coordinate coordinate) {
+    /**
+     * Checks if a coordinate is in bounds of the chess board or not.
+     * @param coordinate coordinate to be checked.
+     * @return true if the coordinate is within the bounds of the chess board and false otherwise.
+     */
+    static boolean isInBounds(Coordinate coordinate) {
         boolean rowInBounds = coordinate.getRow() >= 0 && coordinate.getRow() < ChessBoard.height;
         boolean colInBounds = coordinate.getCol() >= 0 && coordinate.getCol() < ChessBoard.width;
         return rowInBounds && colInBounds;
     }
 
+    /**
+     * Divides a single PieceScalar into multiple PieceScalars with the same anchor point but different coordinates.
+     * @param scalar scalar to be divided into other PieceScalars.
+     * @return List of pieceScalars which are anchored at the same start and each have a single coordinate from the coordinates in {@code scalar}.
+     */
     public List<PieceScalar> divideScalar(PieceScalar scalar) {
         List<PieceScalar> result = new ArrayList<>();
         for (Coordinate coordinate : scalar.coordinates) {
-            result.add(new PieceScalar(coordinate));
+            result.add(new PieceScalar(scalar.start, coordinate));
         }
 
         return result;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -66,11 +104,13 @@ public class PieceScalar extends ChessDirection {
         return coordinates.equals(scalar.coordinates) && start == scalar.start;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return Objects.hash(start, coordinates);
     }
 
+    /** {@inheritDoc} */
     @Override
     public PieceScalar inverse() {
         PieceScalar scalar = new PieceScalar(this.start);
@@ -91,6 +131,7 @@ public class PieceScalar extends ChessDirection {
         directions.addAll(Arrays.asList(chessScalars));
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> horizontalReflection() {
         List<ChessDirection> result = new ArrayList<>();
@@ -110,6 +151,7 @@ public class PieceScalar extends ChessDirection {
         return result;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> verticalReflection() {
         List<ChessDirection> result = new ArrayList<>();

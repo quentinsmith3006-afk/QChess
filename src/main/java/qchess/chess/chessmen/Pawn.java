@@ -15,6 +15,13 @@ import qchess.chess.logic.promotion.PromotionSquares;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Quentin Smith
+ *
+ * Creates the raw playables for the classic Pawn chess piece.
+ * A Pawn has playables which are directly infront of it; however, it also has specific capturables which
+ * are on its direct left and right diagnole.
+ */
 public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpassantable {
 
     public Pawn(Coordinate position, Team team) {
@@ -23,6 +30,7 @@ public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpa
         canResetNumMovesToDraw = true;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> getRawPlayableDirections() {
         ArrayList<ChessDirection> moves = new ArrayList<>();
@@ -49,6 +57,7 @@ public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpa
         return moves;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> getCapturableMoves() {
         List<ChessDirection> moves = new ArrayList<>();
@@ -63,6 +72,7 @@ public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpa
         return moves;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ChessPiece[] getPromotionOptions() {
         return new ChessPiece[]{
@@ -73,11 +83,13 @@ public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpa
         };
     }
 
+    /** {@inheritDoc} */
     @Override
     public PromotionSquares getBlackPromotionSquares() {
         return new PromotionSquares(0);
     }
 
+    /** {@inheritDoc} */
     @Override
     public PromotionSquares getWhitePromotionSquares() {
         return new PromotionSquares(7);

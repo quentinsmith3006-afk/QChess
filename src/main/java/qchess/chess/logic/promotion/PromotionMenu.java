@@ -8,6 +8,12 @@ import qchess.chess.create.ChessPiece;
 import qchess.chess.create.interfaces.Promotable;
 import qchess.chess.logic.ChessBoard;
 
+/**
+ * @author Quentin Smith
+ *
+ * This graphic showcases many {@code PromotionCard} objects for users to click on and promote their chess piece.
+ * {@link qchess.chess.logic.promotion.PromotionCard}
+ */
 public class PromotionMenu extends HBox {
     PromotionLogic promotionLogic;
     ChessPiece[] possiblePromotions;
@@ -17,6 +23,11 @@ public class PromotionMenu extends HBox {
     HBox cardDisplay;
     ChessBoard chessBoard;
 
+    /**
+     * Creates a new stage and scene to hold promotion cards.
+     * @param promotableChessPiece chess piece which is eligible for promotion.
+     * @param chessBoard Chessboard which this menu operates on.
+     */
     public PromotionMenu(Promotable promotableChessPiece, ChessBoard chessBoard) {
         Stage stage = new Stage();
         Scene scene = new Scene(this);
@@ -38,6 +49,10 @@ public class PromotionMenu extends HBox {
         chessBoard.pause();
     }
 
+    /**
+     * Creates promotion cards and adds them {@code cardDisplay}.
+     * @return Array with all created promotion cards in it.
+     */
     private PromotionCard[] initPromotionCards() {
         PromotionCard[] promotionCardsResult = new PromotionCard[possiblePromotions.length];
         for (int i = 0; i < possiblePromotions.length; i++) {

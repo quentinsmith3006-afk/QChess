@@ -13,6 +13,12 @@ import qchess.chess.create.piecemodifiers.Xray;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Quentin Smith
+ *
+ * Creates the raw playables for the classic Knight chess piece.
+ * A Knight has playables which are in L-shape all around the chess piece.
+ */
 @HorizonalSymmetry
 @VerticalSymmetry
 public class Knight extends ChessPiece {
@@ -21,6 +27,7 @@ public class Knight extends ChessPiece {
         this.pieceValue = 3;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> getRawPlayableDirections() {
         List<ChessDirection> moves = new ArrayList<>();
