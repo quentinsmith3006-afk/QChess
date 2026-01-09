@@ -18,13 +18,31 @@ it will stop rendering all coords.
 PieceVector can work alongside Coordinate to act as a directional element that runs continuously-ish
  */
 
+
 // Should represent a direction and magnitude || Starting point of the vector must be a coordinate
+
+/**
+ * @author Quentin Smith
+ *
+ * For QChess purposes, all vectors do is hold the coordinate values.
+ *
+ * A vector is defined by its magnitude and direction where its direction isn't an angle but
+ * the rate of change of the row and column with respect to the start position.
+ */
 public class PieceVector extends ChessDirection {
     public final static int INF = ChessBoard.width * ChessBoard.height;
     private final int deltaRow;
     private final int deltaCol;
     private final int magnitude;
 
+    /**
+     * Generates a new vector with a length of {@code magnitude}, direction of {@code deltaRow} and {@code deltaCol} and
+     * a non-inclusive starting coordinate of {@code start}.
+     * @param start coordinate where the vector generates from.
+     * @param deltaRow change in row as the vector moves along the chess board.
+     * @param deltaCol change in column as the vector moves along the chess board.
+     * @param magnitude length of the vector.
+     */
     public PieceVector(Coordinate start, int deltaRow, int deltaCol, int magnitude) {
         super(start);
         // If magnitude is 0 then vector is infinite
@@ -50,22 +68,32 @@ public class PieceVector extends ChessDirection {
         this.sort(this.coordinates);
     }
 
+    /**
+     * Generates a new vector with a unbounded length, direction of {@code deltaRow} and {@code deltaCol} and
+     * a non-inclusive starting coordinate of {@code start}.
+     * @param start coordinate where the vector generates from.
+     * @param deltaRow change in row as the vector moves along the chess board.
+     * @param deltaCol change in column as the vector moves along the chess board.
+     */
     public PieceVector(Coordinate start, int deltaRow, int deltaCol) {
         this(start, deltaRow, deltaCol, PieceVector.INF);
     }
 
+    /**
+     * @return coordinate end point of the vector.
+     */
     public Coordinate getTerminalPoint() {
         return coordinates.getLast();
     }
 
+    /**
+     * @return coordinate start point of the vector.
+     */
     public Coordinate getInitialPoint() {
         return coordinates.getFirst();
     }
 
-    public static void addAll(List<PieceVector> directions, PieceVector... chessVectors) {
-        directions.addAll(Arrays.asList(chessVectors));
-    }
-
+    /** {@inheritDoc} */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -80,11 +108,13 @@ public class PieceVector extends ChessDirection {
 
     }
 
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return Objects.hash(start, deltaRow, deltaCol, magnitude);
     }
 
+    /** {@inheritDoc} */
     @Override
     public PieceVector inverse() {
         int reversedDeltaRow = deltaRow * -1;
@@ -92,6 +122,7 @@ public class PieceVector extends ChessDirection {
         return new PieceVector(start, reversedDeltaRow, reversedDeltaCol);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> verticalReflection() {
         ArrayList<ChessDirection> result = new ArrayList<>();
@@ -102,6 +133,7 @@ public class PieceVector extends ChessDirection {
         return result;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> horizontalReflection() {
         ArrayList<ChessDirection> result = new ArrayList<>();

@@ -11,6 +11,12 @@ import qchess.chess.create.piecemodifiers.VerticalSymmetry;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Quentin Smith
+ *
+ * Creates the raw playables for the classic Rook chess piece.
+ * A Rook has playables which encompass all squares on its left, right, top and bottom.
+ */
 @VerticalSymmetry
 @HorizonalSymmetry
 public class Rook extends ChessPiece {
@@ -19,6 +25,7 @@ public class Rook extends ChessPiece {
         this.pieceValue = 5;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> getRawPlayableDirections() {
         List<ChessDirection> moves = new ArrayList<>();

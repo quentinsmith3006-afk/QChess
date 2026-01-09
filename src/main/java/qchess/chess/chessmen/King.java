@@ -16,6 +16,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * @author Quentin Smith
+ *
+ * Creates the raw playables for the classic King chess piece.
+ * A King has playables which only surround the entire chess piece.
+ */
 @HorizonalSymmetry
 @VerticalSymmetry
 public class King extends ChessPiece implements Checkable, Castlable {
@@ -26,6 +32,7 @@ public class King extends ChessPiece implements Checkable, Castlable {
         super(position, team, "/ChessAssets/WKing.png","/ChessAssets/BKing.png");
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ChessDirection> getRawPlayableDirections() {
         List<ChessDirection> moves = new ArrayList<>();
@@ -42,6 +49,7 @@ public class King extends ChessPiece implements Checkable, Castlable {
         return moves;
     }
 
+    /** {@inheritDoc} */
     @Override
     public HashMap<PieceScalar, CastleVector> getCastleDirections() {
         HashMap<PieceScalar, CastleVector> moves = new HashMap<>();
@@ -59,21 +67,25 @@ public class King extends ChessPiece implements Checkable, Castlable {
         return moves;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean hasCastled() {
         return castled;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setHasCastled(boolean hasCastled) {
         castled = hasCastled;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setInitializedCastleDirections(HashMap<PieceScalar, CastleVector> initializedCastleDirections) {
         this.initializedCastleDirections = initializedCastleDirections;
     }
 
+    /** {@inheritDoc} */
     @Override
     public HashMap<PieceScalar, CastleVector> getInitializedCastleDirections() {
         return initializedCastleDirections;
