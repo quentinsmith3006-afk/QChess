@@ -14,6 +14,26 @@ import java.util.List;
  */
 public class CastleVector extends PieceVector {
     ChessPiece castleDependent;
+    static int id = 0;
+    String name;
+
+    /**
+     * Generates a new vector with a length of {@code magnitude}, direction of {@code deltaRow} and {@code deltaCol} and
+     * a non-inclusive starting coordinate of {@code start}.
+     * @param start coordinate where the vector generates from.
+     * @param deltaRow change in row as the vector moves along the chess board.
+     * @param deltaCol change in column as the vector moves along the chess board.
+     * @param magnitude length of the vector.
+     */
+    public CastleVector(Coordinate start, int deltaRow, int deltaCol, int magnitude, String name) {
+        super(start, deltaRow, deltaCol, magnitude);
+        this.name = name;
+        id = ++id;
+        if (name == null) {
+            this.name = Integer.toString(id);
+        }
+    }
+
 
     /**
      * Generates a new vector with a length of {@code magnitude}, direction of {@code deltaRow} and {@code deltaCol} and
@@ -24,7 +44,14 @@ public class CastleVector extends PieceVector {
      * @param magnitude length of the vector.
      */
     public CastleVector(Coordinate start, int deltaRow, int deltaCol, int magnitude) {
-        super(start, deltaRow, deltaCol, magnitude);
+        this(start, deltaRow, deltaCol, magnitude, null);
+    }
+
+    /**
+     * @return name of the vector/castle movement.
+     */
+    public String getName() {
+        return name;
     }
 
     /**

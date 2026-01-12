@@ -17,11 +17,13 @@ import java.util.Objects;
  * {@link qchess.chess.logic.ChessPosition}
  */
 public abstract class ChessPiece {
+    protected static int id = 0;
     protected ChessPosition position;
     protected Coordinate coordinate;
     protected final Coordinate startCoordinate;
     protected boolean pinned;
     protected String name;
+    protected int chessPieceID;
     protected Team team;
     protected ImageView graphic;
     protected int pieceValue;
@@ -40,6 +42,7 @@ public abstract class ChessPiece {
         this.coordinate = coordinate;
         this.name = this.getClass().getSimpleName();
         this.team = team;
+        this.chessPieceID = ++id;
 
         if (WhiteTeamGraphic != null && BlackTeamGraphic != null) {
             if (team == Team.WHITE) {
@@ -52,13 +55,13 @@ public abstract class ChessPiece {
                         getClass().getResource(BlackTeamGraphic).toExternalForm()
                 );
                 this.graphic = new ImageView(img);
-            }
+            } // if
 
             assert this.graphic != null;
             this.graphic.setFitHeight(40);
             this.graphic.setFitWidth(40);
 
-        }
+        } // if
     }
 
     /**
@@ -83,7 +86,7 @@ public abstract class ChessPiece {
             moves = ChessAnnotation.applyAnnotations(this, MovesType.PLAYABLES);
         } catch (NullPointerException npe) {
             throw new IllegalStateException("Either there is no chessboard");
-        }
+        } // try
 
         return moves;
     }
@@ -211,12 +214,17 @@ public abstract class ChessPiece {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        return ((ChessPiece) obj).coordinate.equals(coordinate) && ((ChessPiece) obj).name.equals(name);
+        return ((ChessPiece) obj).chessPieceID == (chessPieceID) && ((ChessPiece) obj).name.equals(name);
     }
 
     /** {@inheritDoc} */
     @Override
     public int hashCode() {
-        return Objects.hash(coordinate, name);
+        int code = 0;
+        for (int i = 0; i < this.name.length(); i++) {
+            code += this.name.charAt(i);
+        }
+        code *= chessPieceID;
+        return code;
     }
 }

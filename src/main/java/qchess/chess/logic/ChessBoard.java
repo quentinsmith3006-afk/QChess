@@ -187,11 +187,14 @@ public class ChessBoard extends GridPane {
             try {
                 ChessPiece castleDependent = chessPositions[vector.getTerminalPoint().getBtnID()].getChessPiece();
                 vector.setCastleDependent(castleDependent);
+
             } catch (NoSuchElementException e) {
+
                 // This just means that the terminal point doesn't exist because the vector didn't generate
                 // due to chess piece being at the far end of the chess board.
             } // try-catch
         });
+
         return castleDirections;
     }
 
@@ -343,6 +346,14 @@ public class ChessBoard extends GridPane {
      */
     public void setOnPostPromotion(EventHandler<ChessEvent> postPromotionOperation) {
         this.addEventHandler(PostPromotionEvent.POSTPROMOTION, postPromotionOperation);
+    }
+
+    /**
+     * Executes the EventHandler upon the firing of a {@code qchess.chess.logic.event.DrawEvent}.
+     * @param stalemateOperation event handler which executes.
+     */
+    public void setOnDraw(EventHandler<ChessEvent> stalemateOperation) {
+        this.addEventHandler(DrawEvent.DRAW, stalemateOperation);
     }
 
     /**

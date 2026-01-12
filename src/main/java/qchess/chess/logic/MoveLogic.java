@@ -20,14 +20,15 @@ import java.util.*;
 /**
  * @author Quentin Smith
  *
+ * <p>
  * This class contains all move logic that pertains to chess pieces. This includes all chess rules that
  * govern chess piece movement.
- *
- * <p>
- *     Playables -> what a chess piece can play given their current position.
- *     Capturable -> what a chess piece can capture given their current position.
- *     Current team -> refers to the team which is active on the chess board.
  * </p>
+ * <ul>
+ *     <li>Playables -> what a chess piece can play given their current position.</li>
+ *     <li>Capturable -> what a chess piece can capture given their current position.</li>
+ *     <li>Current team -> refers to the team which is active on the chess board.</li>
+ * </ul>
  *
  * {@link qchess.chess.create.ChessPiece}
  * {@link qchess.chess.logic.ChessPosition}
@@ -38,21 +39,55 @@ import java.util.*;
 public class MoveLogic extends ChessLogic {
     public ArrayList<ChessPosition> pastPositions;
     public ChessPosition pastChessPosition;
-    private final ArrayList<PinCheckInformation> pinCheckInformation;
-    private final HashMap<ChessPiece, ChessPiece> pinnerPinnedMap;
+    private final ArrayList<PinnerPinnedCheckable> pinnerPinnedStorage;
+    private final HashMap<ChessPiece, ChessPiece>  discoveredCheckMap;
     private final HashMap<ChessPiece, List<ChessPosition>> memoizedPastPositions;
     private final HashMap<ChessPiece, List<ChessPosition>> memoizedAttacks;
     private final HashMap<ChessPiece, Integer> chessPieceNumMovesMap;
     private final ChessPosition[] drawByRepetitionStorageWhite;
     private final ChessPosition[] drawByRepetitionStorageBlack;
 
-    int num; //delete
+    private final ArrayList<PinInformation> pinInformation;
+    private final ArrayList<CheckInformation> checkInformation;
+
+    final HashMap<String, Boolean> canCastleMap;
+
+    // debugging
+    int num;
     int totnum;
 
+    // Meta data
     final int numRepetitionToDraw = 3;
+    int individualRepetitionToDraw = (numRepetitionToDraw * 2) - 1;
     int numMoves;
     int numMovesToFiftyMoveRuleDraw;
     int numMovesAvailable;
+    Enpassant enpassant; // records whether there is an enpassant piece or not.
+
+    /**
+     * Holds the 3 chess pieces involved in a pin: pinner, pinned and checkable.
+     * @param pinner piece that pins {@code pinned} to {@code checkable}.
+     * @param pinned piece that is pinned.
+     * @param checkable piece which can be checked.
+     */
+    record PinnerPinnedCheckable(ChessPiece pinner, ChessPiece pinned, ChessPiece checkable) {}
+
+    /**
+     * Holds the information regarding a pin.
+     * @param pinDirection The exact {@code ChessDirection} originating from {@code pinnerPiece} which pins {@code pinnedPiece} to a checkable
+     * @param pinner piece that pins {@code pinned} to a checkable.
+     * @param pinned piece that is pinned.
+     */
+    record PinInformation(ChessDirection pinDirection, ChessPiece pinned, ChessPiece pinner) {} // Renamed from pinnedPiece to pinned
+
+    /**
+     * Holds the information regarding a check.
+     * @param distFromOrigin the distance of the checkable from the checking piece.
+     * @param checkDirection the exact {@code ChessDirection} originating from {@code checkingPiece} which checks a checkable.
+     * @param checkedPiece the checkable chess piece.
+     * @param checkingPiece the chess piece that initiates check onto a checkable.
+     */
+    record CheckInformation(Integer distFromOrigin, ChessDirection checkDirection, ChessPiece checkedPiece, ChessPiece checkingPiece) {}
 
     /**
      * Initializes storage capabilities for various items of interest.
@@ -61,13 +96,16 @@ public class MoveLogic extends ChessLogic {
     public MoveLogic(ChessBoard chessBoard) {
         super(chessBoard);
         
-        pinCheckInformation = new ArrayList<>();
+        pinInformation = new ArrayList<>();
+        checkInformation = new ArrayList<>();
+        canCastleMap = new HashMap<>();
+
         chessPieceNumMovesMap = new HashMap<>();
-        pinnerPinnedMap = new HashMap<>();
+        discoveredCheckMap = new HashMap<>();
+        pinnerPinnedStorage = new ArrayList<>();
         memoizedPastPositions = new HashMap<>();
         memoizedAttacks  = new HashMap<>();
 
-        int individualRepetitionToDraw = (numRepetitionToDraw * 2) - 1;
         drawByRepetitionStorageWhite = new ChessPosition[individualRepetitionToDraw];
         drawByRepetitionStorageBlack = new ChessPosition[individualRepetitionToDraw];
     }
@@ -148,10 +186,10 @@ public class MoveLogic extends ChessLogic {
             numMoves++;
             switch (pastChessPositionTeam) {
                 case BLACK:
-                    drawByRepetitionStorageBlack[numMoves % numRepetitionToDraw] = clickedPosition;
+                    drawByRepetitionStorageBlack[numMoves % individualRepetitionToDraw] = clickedPosition;
                     break;
                 case WHITE:
-                    drawByRepetitionStorageWhite[numMoves % numRepetitionToDraw] = clickedPosition;
+                    drawByRepetitionStorageWhite[numMoves % individualRepetitionToDraw] = clickedPosition;
                     break;
             } // switch
             evaluateRepetitionDraw(pastChessPosition.getChessPiece());
@@ -217,6 +255,7 @@ public class MoveLogic extends ChessLogic {
             if (pos == null){
                 return 0;
             } // if
+
             if (arr[0].coordinate.equals(pos.coordinate)) {
                 num++;
             } // if
@@ -317,8 +356,8 @@ public class MoveLogic extends ChessLogic {
      */
     List<ChessPosition> playableSquaresRefinery(ChessPiece chessPiece, ChessPosition clickedPosition, ChessPosition[] chessPositions, boolean canSetAttack, boolean isFromClick) {
         boolean pieceIsPinning = false;
-        for (PinCheckInformation info : pinCheckInformation) {
-            if (chessPiece.equals(info.pinnerPiece())) {
+        for (PinInformation info : pinInformation) {
+            if (chessPiece.equals(info.pinner())) {
                 pieceIsPinning = true;
                 break;
             } // if
@@ -396,9 +435,11 @@ public class MoveLogic extends ChessLogic {
      * @param chessPositions all chess positions on the chess board.
      */
     private void determineCastlingMoves(ChessPiece chessPiece, Castlable castlablePiece, ChessPosition[] chessPositions) {
-        if (!castlablePiece.hasCastled() && !chessPiece.hasMoved()) {
-            HashMap<PieceScalar, CastleVector> castleDirections = castlablePiece.getInitializedCastleDirections();
-            castleDirections.forEach((scalar, castleVector) -> {
+        HashMap<PieceScalar, CastleVector> castleDirections = castlablePiece.getInitializedCastleDirections();
+        castleDirections.forEach((scalar, castleVector) -> {
+            boolean canCastle = false;
+
+            if (!castlablePiece.hasCastled() && !chessPiece.hasMoved()) {
                 ChessPiece terminalPiece;
                 try {
                     terminalPiece = chessPositions[castleVector.getTerminalPoint().getBtnID()].getChessPiece();
@@ -407,7 +448,10 @@ public class MoveLogic extends ChessLogic {
                 } // try-catch
 
                 boolean terminalPieceConditionals = terminalPiece != null && !terminalPiece.hasMoved();
+
                 if (terminalPieceConditionals) {
+                    canCastle = true;
+
                     boolean vectorLineSegmentEmpty = false;
 
                     for (Coordinate coordinate : castleVector) {
@@ -431,12 +475,15 @@ public class MoveLogic extends ChessLogic {
                             for (Coordinate coordinate : scalar) {
                                 ChessPosition posOfCoord = chessPositions[coordinate.getBtnID()];
                                 pastPositions.add(posOfCoord);
+                                System.out.println("gg");
                             } // for
                         } // if
                     } // if
                 } // if
-            }); // for-each
-        } // if
+            }
+
+            canCastleMap.put(castleVector.getName(), canCastle);
+        }); // for-each
     }
 
     /**
@@ -484,17 +531,24 @@ public class MoveLogic extends ChessLogic {
                     boolean chessPieceIsCheckable = coordinatePiece instanceof Checkable;
 
                     if (firstPotentialPin && chessPieceIsCheckable) {
-                        possiblePin.setPinned(true);
-                        pinnerPinnedMap.put(chessPiece, possiblePin);
+                        pinnerPinnedStorage.add(new PinnerPinnedCheckable(chessPiece, possiblePin, coordinatePiece));
                     } // if
 
                     if (chessPiece.getTeam() != coordinatePiece.getTeam()) {
                         if (coordinatePiece instanceof Checkable && chessBoard.checkAllowed) {
-                            PinCheckInformation info = new PinCheckInformation(
-                                    ++distFromOrigin, direction, coordinatePiece, chessPiece
-                            );
+                            if (firstPotentialPin) {
+                                PinInformation info = new PinInformation (
+                                        direction, coordinatePiece, chessPiece
+                                );
 
-                            pinCheckInformation.add(info);
+                                pinInformation.add(info);
+                            } else {
+                                CheckInformation info = new CheckInformation (
+                                        ++distFromOrigin, direction, coordinatePiece, chessPiece
+                                );
+
+                                checkInformation.add(info);
+                            } // else
                         } // if
                     } // if
 
@@ -512,7 +566,7 @@ public class MoveLogic extends ChessLogic {
                             } // if
                         } // if
 
-                        if (!firstPotentialPin && coordinatePiece.getTeam() != chessPiece.getTeam()) {
+                        if (!firstPotentialPin) {
                             possiblePin = coordinatePiece;
                             firstPotentialPin = true;
                         } // if
@@ -575,19 +629,26 @@ public class MoveLogic extends ChessLogic {
                     boolean chessPieceIsCheckableAndDifTeam = coordinatePiece instanceof Checkable && chessPiece.getTeam() != coordinatePiece.getTeam();
 
 
-                    if (firstPotentialPin && chessPieceIsCheckableAndDifTeam) {
-                        possiblePin.setPinned(true);
-                        pinnerPinnedMap.put(chessPiece, possiblePin);
+                    if (firstPotentialPin && chessPieceIsCheckable) {
+                        pinnerPinnedStorage.add(new PinnerPinnedCheckable(chessPiece, possiblePin, coordinatePiece));
                     } // if
 
                     // Coordinate sees a checkable piece
                     if (!(chessPiece instanceof SpecifyCapture) && chessPiece.getTeam() != coordinatePiece.getTeam()) {
                         if (coordinatePiece instanceof Checkable && chessBoard.checkAllowed) {
-                            PinCheckInformation info = new PinCheckInformation(
-                                    ++distFromOrigin, direction, coordinatePiece, chessPiece
-                            );
+                            if (firstPotentialPin) {
+                                PinInformation info = new PinInformation (
+                                        direction, coordinatePiece, chessPiece
+                                );
 
-                            pinCheckInformation.add(info);
+                                pinInformation.add(info);
+                            } else {
+                                CheckInformation info = new CheckInformation (
+                                        ++distFromOrigin, direction, coordinatePiece, chessPiece
+                                );
+
+                                checkInformation.add(info);
+                            } // else
                         } // if
                     } // if
 
@@ -605,7 +666,7 @@ public class MoveLogic extends ChessLogic {
                             } // if
                         } // if
 
-                        if (!firstPotentialPin && coordinatePiece.getTeam() != chessPiece.getTeam()) {
+                        if (!firstPotentialPin) {
                             possiblePin = coordinatePiece;
                             firstPotentialPin = true;
                         } // if
@@ -664,18 +725,27 @@ public class MoveLogic extends ChessLogic {
      * @param isFromClick whether the method call is the result of a click or not.
      */
     private void enableRefinedPlayableSquares(ChessPiece chessPiece, List<ChessPosition> pastPositions, boolean isFromClick) {
-        if ((chessBoard.pieceInCheck || (chessBoard.pinAllowed && chessPiece.isPinned())) && !(chessPiece instanceof Checkable)) {
+        if (chessPiece.isPinned() && chessBoard.pinAllowed) {
+            return;
+        } // if
+
+        if ((chessBoard.pieceInCheck) && !(chessPiece instanceof Checkable)) {
 
             List<Coordinate> convertedPosToCoord = pastPositions.stream()
                     .map(ChessPosition::getCoordinate)
                     .toList();
 
-            for (PinCheckInformation info : pinCheckInformation) {
+            ArrayList<Coordinate> intersect = new ArrayList<>(checkInformation.getFirst().checkDirection().getDirectionFromOrigin());
+            for (int i = 1; i < checkInformation.size(); i++) {
+                intersect.retainAll(checkInformation.get(i).checkDirection().getDirectionFromOrigin());
+            }
+
+            for (CheckInformation info : checkInformation) {
                 int distFromOrigin = 0;
 
-                for (Coordinate coord : info.pinCheckDirection().getDirectionFromOrigin()) {
+                for (Coordinate coord : intersect) {
                     if (convertedPosToCoord.contains(coord)) {
-                        if (info.distFromOrigin() >= distFromOrigin && info.pinnedPiece().getTeam() == chessPiece.getTeam()) { // making equals fixes piece not being able to capture when piece in check
+                        if (info.distFromOrigin() >= distFromOrigin && info.checkedPiece().getTeam() == chessPiece.getTeam()) { // making equals fixes piece not being able to capture when piece in check
 
                             ChessPiece pieceInAttackVector = chessBoard.chessPositions[coord.getBtnID()].getChessPiece();
 
@@ -700,10 +770,6 @@ public class MoveLogic extends ChessLogic {
                 } // for-each
             } // for-each
 
-            return;
-        } // if
-
-        if (chessPiece.isPinned() && chessBoard.pinAllowed) {
             return;
         } // if
 
@@ -736,7 +802,8 @@ public class MoveLogic extends ChessLogic {
      */
     private void resetMetaData() {
         chessBoard.pieceInCheck = false;
-        pinCheckInformation.clear();
+        pinInformation.clear();
+        checkInformation.clear();
         memoizedPastPositions.clear();
         memoizedAttacks.clear();
     }
@@ -754,16 +821,17 @@ public class MoveLogic extends ChessLogic {
         Coordinate onePlaceUnder = new Coordinate(newBtnId);
 
         Enpassant enpassant = new Enpassant(onePlaceUnder, enpassPawn.getTeam());
+        this.enpassant = enpassant;
         enpassant.setPosition(chessBoard.getChessPositions()[newBtnId]);
         chessBoard.chessPieces.add(enpassant);
         onePlaceUnderPawn.setChessPiece(enpassant);
-        onePlaceUnderPawn.setText("Enpassant");
     }
 
     /**
      * Removes any chess pieces that extends SpecialPiece.
      */
     private void removeSpecialPieces() {
+        enpassant = null;
         for (int i = 0; i < chessBoard.chessPieces.size(); i++) {
             ChessPiece chessPiece = chessBoard.chessPieces.get(i);
 
@@ -901,7 +969,7 @@ public class MoveLogic extends ChessLogic {
         } // if
 
         // Check
-        if (!(chessPiece instanceof Checkable) && chessBoard.checkAllowed && !chessBoard.singleTeam) {
+        if (!(chessPiece instanceof Checkable) && !chessBoard.singleTeam) {
             processGameEnd(chessPiece, futurePos); //Analysis of attacks HERE
         } // if
 
@@ -925,6 +993,7 @@ public class MoveLogic extends ChessLogic {
         for (ChessPosition pos : chessBoard.chessPositions) {
             pos.attackers.clear();
             pos.setIsAttacked(false);
+            pos.setText("");
         } // for-each
     }
 
@@ -959,6 +1028,7 @@ public class MoveLogic extends ChessLogic {
         for (ChessPosition pos : playableSquaresRefinery(oneOfAllChessPieces, futurePos, chessBoard.chessPositions, true, false)) {
             pos.attackers.add(oneOfAllChessPieces);
             pos.setIsAttacked(true);
+            pos.setText("ATTK");
         } // for-each
     }
 
@@ -971,6 +1041,13 @@ public class MoveLogic extends ChessLogic {
      * @return true if check occurred and false otherwise.
      */
     public boolean scanForCheck(ChessPiece chessPiece, ChessPosition futurePos) {
+        for (Map.Entry<ChessPiece, ChessPiece> dscverdChessPiece : discoveredCheckMap.entrySet()) {
+            if (dscverdChessPiece.getKey().equals(chessPiece)) {
+                ChessPiece pinner = dscverdChessPiece.getValue();
+                scanForCheck(pinner, pinner.getPosition());
+            } // if
+        } // for-each
+
         for (ChessPosition position : playableSquaresRefinery(chessPiece, futurePos, chessBoard.chessPositions, true, false)) {
             if (position.getChessPiece() instanceof Checkable && position.getChessPiece().getTeam() != chessPiece.getTeam()) {
                 chessBoard.fireEvent(new CheckEvent(position.getChessPiece()));
@@ -999,30 +1076,53 @@ public class MoveLogic extends ChessLogic {
 
         for (Map.Entry<ChessPiece, Integer> numMovesEntry : chessPieceNumMovesMap.entrySet()) {
             if (numMovesEntry.getKey().getTeam() != chessPiece.getTeam()) {
+                System.out.println(numMovesEntry.getKey() + " " + numMovesEntry.getKey().getTeam());
                 totalMoves += numMovesEntry.getValue();
             } // if
         } // for-each
 
         if (scanForCheck(chessPiece, futurePos) && chessBoard.checkMateAllowed && totalMoves == 0) {
-            pinCheckInformation.clear();
+            pinInformation.clear();
+            checkInformation.clear();
 
             chessBoard.fireEvent(new CheckMateEvent(chessPiece));
 
         } else if (totalMoves == 0) {
             chessBoard.fireEvent(new DrawEvent(chessPiece));
         } // else
+
+        System.out.println();
+        System.out.println("Total moves: " + totalMoves);
+        System.out.println();
     }
 
     /**
      * Scans through the {@code pinnerPinnedMap} to evaluate currently active pins on the chess board.
      */
     public void evaluatePin() {
+        for (PinnerPinnedCheckable pPC : pinnerPinnedStorage) {
+            ChessPiece pinner = pPC.pinner();
+            ChessPiece pinned = pPC.pinned();
+            ChessPiece checkable = pPC.checkable();
+
+            if (checkable.getTeam() != pinner.getTeam()) {
+                if (pinner.getTeam() != pinned.getTeam()) {
+                    processPin(pinner, pinned);
+                } else { // Handling discovered check
+                    discoveredCheckMap.put(pinned, pinner);
+                } // else
+            } // if
+        } // for-each
+
+        /*
         for (Map.Entry<ChessPiece, ChessPiece> pinnerPinEntry : pinnerPinnedMap.entrySet()) {
             ChessPiece pinner = pinnerPinEntry.getKey();
             ChessPiece pinned = pinnerPinEntry.getValue();
 
             processPin(pinner, pinned);
         } // for-each
+
+         */
     }
 
     /**
@@ -1163,5 +1263,34 @@ public class MoveLogic extends ChessLogic {
         pos.setChessPiece(null);
         pos.setGraphic(null);
         pos.setDisable(true);
+    }
+
+    /**
+     * @return the amount of moves until a draw occurs via fifty move rule.
+     */
+    public int getNumMovesToFiftyMoveDraw() {
+        return numMovesToFiftyMoveRuleDraw;
+    }
+
+    /**
+     * @return the total number of movements that occurred.
+     */
+    public int getTotalNumMoves() {
+        return numMoves;
+    }
+
+    /**
+     * @return the enpassant piece if it is on the board and null if not.
+     */
+    public Enpassant getEnpassant() {
+        return enpassant;
+    }
+
+    /**
+     * Gets boolean castling abilities from castle vectors for all chess pieces.
+     * @return a hashmap with the name of the vector as the key and a boolean which is true when castling is possible on the castle vector.
+     */
+    public HashMap<String, Boolean> getCastleInformation() {
+        return canCastleMap;
     }
 }
