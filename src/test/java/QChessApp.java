@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -10,6 +11,7 @@ import qchess.chess.chessmen.*;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.logic.ChessBoard;
+import qchess.chess.logic.event.ChessEvent;
 
 import java.io.IOException;
 
@@ -29,16 +31,27 @@ public class QChessApp extends Application {
         background = new ImageView(img); // provide image
         chessBoard = ChessBoard.newBuilder()
                 .emptyChessBoard()
-                .add(new Bishop(new Coordinate(5,5), Team.WHITE))
-                .add(new Pawn(new Coordinate(3,3), Team.BLACK))
-                .add(new Pawn(new Coordinate(7,7), Team.BLACK))
-                .add(new Pawn(new Coordinate(3,7), Team.BLACK))
-                .add(new Pawn(new Coordinate(7,3), Team.BLACK))
-
+                .add(new King(new Coordinate(0,0), Team.BLACK))
+                .add(new King(new Coordinate(2,0), Team.WHITE))
+                .add(new Queen(new Coordinate(1,5), Team.WHITE))
+                .add(new Queen(new Coordinate(3,5), Team.WHITE))
                 .build()
         ;
 
         chessBoard.launchGame();
+
+        // Maybe add more information to the castleinfo hashmap
+        EventHandler<ChessEvent> eventHandler = (event) -> {
+            //System.out.println();
+
+            chessBoard.getMoveLogic().getCastleInformation().forEach((String CastleName, Boolean canCastle) -> {
+                //System.out.println(CastleName + " " + canCastle);
+            });
+            //System.out.println();
+
+        };
+
+        chessBoard.setOnPieceMovement(eventHandler);
 
         double width = 500;
         double height = 25;

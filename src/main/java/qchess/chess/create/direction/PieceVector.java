@@ -3,10 +3,7 @@ package qchess.chess.create.direction;
 import qchess.chess.create.Coordinate;
 import qchess.chess.logic.ChessBoard;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 /*
@@ -55,21 +52,77 @@ public class PieceVector extends ChessDirection {
         this.deltaCol = deltaCol;
         this.magnitude = magnitude;
 
-        int r = start.getRow() + deltaRow, c = start.getCol() + deltaCol;
-        int m = magnitude;
+        double r = start.getRow() + (deltaRow < 0 ? Math.floor(deltaRow) : deltaRow);
+        double c = start.getCol() + (deltaCol < 0 ? Math.floor(deltaCol) : deltaCol);
+
+        double m = magnitude;
 
         Function<Integer, Boolean> isRowInBounds = (g) -> g < ChessBoard.height && g >= 0;
         Function<Integer, Boolean> isColInBounds = (g) -> g < ChessBoard.width && g >= 0;
 
-        for (;isRowInBounds.apply(r) && isColInBounds.apply(c) && m > 0; r += deltaRow,  c += deltaCol, m--) {
-            coordinates.add(new Coordinate(r, c));
+        for (;isRowInBounds.apply((int) Math.ceil(r)) && isColInBounds.apply((int) Math.ceil(c)) && m > 0; r += deltaRow,  c += deltaCol, m--) {
+            int appliedR = (int) Math.ceil(r);
+            int appliedC = (int) Math.ceil(c);
+
+            coordinates.add(new Coordinate(appliedR, appliedC));
         }
+
+
+        /*
+        if (Math.abs(deltaRow) > Math.abs(deltaCol)) {
+            generateColVector(deltaRow, deltaCol, magnitude);
+        } else {
+            generateRowVector(deltaRow, deltaCol, magnitude);
+        }
+
+         */
 
         this.sort(this.coordinates);
     }
 
+    void generateRowVector(int deltaRow, int deltaCol, int magnitude) {
+        Function<Integer, Boolean> isRowInBounds = (g) -> g < ChessBoard.height && g >= 0;
+        Function<Integer, Boolean> isColInBounds = (g) -> g < ChessBoard.width && g >= 0;
+
+        int rowDirection = deltaRow / (Math.abs(deltaRow) == 0 ? 1 : Math.abs(deltaRow));
+        int colDirection = deltaCol / (Math.abs(deltaCol) == 0 ? 1 : Math.abs(deltaCol));
+
+        int r = start.getRow() + rowDirection;
+        int c = start.getCol() + colDirection;
+        int m = magnitude;
+
+        int cM = Math.abs(deltaCol); // Column magnitude
+
+        for (; isRowInBounds.apply(r) && isColInBounds.apply(c) && m > 0; r+=rowDirection, cM = Math.abs(deltaCol)) {
+            for (; isColInBounds.apply(c) && m > 0 && cM > 0; c+=colDirection, m--, cM--) {
+                coordinates.add(new Coordinate(r, c));
+            }
+        }
+    }
+
+    void generateColVector(int deltaRow, int deltaCol, int magnitude) {
+
+        Function<Integer, Boolean> isRowInBounds = (g) -> g < ChessBoard.height && g >= 0;
+        Function<Integer, Boolean> isColInBounds = (g) -> g < ChessBoard.width && g >= 0;
+
+        int rowDirection = deltaRow / (Math.abs(deltaRow) == 0 ? 1 : Math.abs(deltaRow));
+        int colDirection = deltaCol / (Math.abs(deltaCol) == 0 ? 1 : Math.abs(deltaCol));
+
+        int r = start.getRow() + rowDirection;
+        int c = start.getCol() + colDirection;
+        int m = magnitude;
+
+        int rM = Math.abs(deltaRow); // row magnitude
+
+        for (; isColInBounds.apply(c) && isRowInBounds.apply(r) && m > 0; c+=colDirection, rM = Math.abs(deltaRow)) {
+            for (; isRowInBounds.apply(r) && m > 0 && rM > 0; r+=rowDirection, m--, rM--) {
+                coordinates.add(new Coordinate(r, c));
+            }
+        }
+    }
+
     /**
-     * Generates a new vector with a unbounded length, direction of {@code deltaRow} and {@code deltaCol} and
+     * Generates a new vector with an unbounded length, direction of {@code deltaRow} and {@code deltaCol} and
      * a non-inclusive starting coordinate of {@code start}.
      * @param start coordinate where the vector generates from.
      * @param deltaRow change in row as the vector moves along the chess board.

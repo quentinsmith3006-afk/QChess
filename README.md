@@ -8,65 +8,70 @@
 ![hi](src/main/resources/ChessAssets/BKing.png)
 ![hi](src/main/resources/ChessAssets/WQueen.png)
 ![hi](src/main/resources/ChessAssets/BPawn.png)
-- - -
+
 ## Background
 After taking CS1302 at UGA I was able to create this over 2025 Christmas break.
 QChessV1 is hardly comparable to this version. QChessV1 is based around Java
 Swing and was made purely to become Chess and nothing more.
 
-The purpose of this is essentially to be an open source chess component for JavaFX. 
+The purpose of this is essentially to be an open source chess component for JavaFX.
 My personal objective in making this was to create a CS1302 capstone project in addition to the one I made for the class.
 
 I will use this framework to make a simple chess app that utilizes APIs which will
 serve as the foreseeable endpoint to my chess endeavors. Until then, I will keep improving this.
 
 ⚠︎ Project Warnings
-: Not fully tested/unstable
-: Not yet fully customizable
-: Enpassant is hard coded (unfortunately)
+* Not fully tested/unstable
+* Not yet fully customizable
+* Enpassant is hard coded (unfortunately)
 
 Features added to version 2:
-: Checkmate
-: Stalemate
-: Events
-: Much more customization options
-: 2 More grid systems
-: Vectors and scalars
-: Overhauled piece movement system
-: + More probably
+* Checkmate
+* Stalemate
+* Events
+* Much more customization options
+* 2 More grid systems
+* Vectors and scalars
+* Overhauled piece movement system
+* and probably more
 
 - -
 
 Future Features
-: Chess960 castling compatability
-: Non-hardcoded enpassant
-: New vector that allows chess piece wall hacks
+* Chess960 castling compatability
+* Non-hardcoded enpassant
+* New vector that allows chess piece wall hacks
 
 ## Contribution
 Feel free to contribute, just run tests and stuff. I will have to approve
 any pushes though.
 
 ## Java Version
-*java 24.0.2 2025-07-15*
+*java version "21.0.9" 2025-10-21 LTS*
 
-*Java(TM) SE Runtime Environment (build 24.0.2+12-54)*
+*Java(TM) SE Runtime Environment (build 21.0.9+7-LTS-338)*
 
 ## Installation
-Not yet on maven
+*0.2.6* is the best version to use currently.
+**https://jitpack.io/#quentinsmith3006-afk/QChess**
 
 ## Grid Systems
 #### Algebraic Notation
-![AlgebraicNotation](readmeresources/AlgebraicNotationSystem.png)
+<img src="readmeresources/AlgebraicNotationSystem.png" width="350" height="350">
+
 This system is not used for internal or chess piece functionality. It primarily serves
 as the way to communicate through chess.
 - - -
+
 #### BtnID System
-![BtnIDSystem](readmeresources/BtnIDSystem.png)
+<img src="readmeresources/BtnIDSystem.png" width="350" height="350">
 This system is used for some internal functionality but will eventually
 be used to allow vectors to go across the chess board.
+
 - - -
+
 #### Coordinate System (the normal one)
-![GridSystem](readmeresources/GridSystem.png)
+<img src="readmeresources/GridSystem.png" width="350" height="350">
 This system is primarily used to create new chess pieces and
 add functionality.
 
@@ -103,7 +108,7 @@ chessBoard = ChessBoard.newBuilder()
 ;
 ```
 ---
-All normal chess rules are automatically enabled, but you can disable them using builder methods. 
+All normal chess rules are automatically enabled, but you can disable them using builder methods.
 You cannot re-enable them after the chess board is made.
 ```
 chessBoard = ChessBoard.newBuilder()
@@ -143,13 +148,14 @@ If you do not want this dependency then you should make multiple
 scalars. Since vectors can only be created with respect to the current position, vectors are *always* dependent
 on the coordinates defined in that vector.
 
-For example, the playables for a knight can be defined only by scalars, a king's playable moves can be defined by either a 
+For example, the playables for a knight can be defined only by scalars, a king's playable moves can be defined by either a
 vector or scalar and a Rook's moves by (painfully) scalars or (very easily) by vectors.
 
 
 ### ♜ Creating a custom piece ♜
 #### Basic chess piece example
 This is essentially a bishop.
+note: *if you do not provide graphical representations of your chess piece, the class name will represent it instead.*
 ```
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceVector;
@@ -186,7 +192,7 @@ public class MyChessPiece extends ChessPiece {
 
 - - -
 
-Here is one of the vectors from the bishop. The vector's constructor 
+Here is one of the vectors from the bishop. The vector's constructor
 requires a starting point, delta row, delta column and a magnitude in that order.
 ```
 PieceVector bottomLeftVector = new PieceVector(this.coordinate, 1 , -1, PieceVector.INF);
@@ -269,9 +275,11 @@ Chess pieces can be given different abilities through the use of interfaces.
         return initializedCastleDirections;
     }
 ```
+
 Castling pieces need a new type of vector called CastleVector. A castlevector is a piecevector, but
-its terminal point is used to identify the co-castling piece--rook in normal chess--. Using *PieceVector.INF* 
+its terminal point is used to identify the co-castling piece--rook in normal chess--. Using *PieceVector.INF*
 essentially just goes to the end of the board.
+
 ---
 2. #### Checkable
 A checkable does not have any abstract methods to implement but it does change the functionality of the chess piece.
@@ -281,7 +289,7 @@ Properties of checkables:
 * When checked, they stop all other pieces from moving
 * Can initiate checkmate
 * If there is 2 checkables then
-   * When in check, either checkable can move.
+    * When in check, either checkable can move.
 
 * Checkmate can only occur when there are **no moves left**
 ---
@@ -307,7 +315,7 @@ Properties of checkables:
         return new PromotionSquares(7);
     }
 ```
-To create a promotable there are 3 items required: 
+To create a promotable there are 3 items required:
 promotion options, black promotion squares and white promotion squares.
 
 Black and white promotion squares can be entire rows, columns or even single points.
@@ -318,7 +326,7 @@ To specify an entire column for promotion:
 4. #### SpecifyCapture
 This is the code snippet for the Pawn. Pawns have a special property where their
 playable squares are not necessarily their attack squares. For instance, you cannot
-capture in front of a pawn, but you can move the pawn there. 
+capture in front of a pawn, but you can move the pawn there.
 
 To add this functionality, you can specify where your piece can capture, otherwise the framework assumes all playables are also capturables.
 ```
@@ -336,7 +344,7 @@ To add this functionality, you can specify where your piece can capture, otherwi
         return moves;
     }
 ```
-Momentum exists here because pawns travel in different directions based on their team. 
+Momentum exists here because pawns travel in different directions based on their team.
 > int momentum = team == Team.BLACK ? -1 : 1;
 
 
@@ -363,15 +371,16 @@ public class Bishop extends ChessPiece {
 }
 ```
 
-As you can see, I only specified the bottom right diagonal. The diagonal is internally reflected vertically 
-and horizontally which creates a traditional bishop. 
+As you can see, I only specified the bottom right diagonal. The diagonal is internally reflected vertically
+and horizontally which creates a traditional bishop.
 
 1. #### Horizontal & Vertical Reflection
 With annotations, you can reflect both playable and capturable squares.
-Internally, if not specified *the framework assumes you want to reflect both*.
+Internally, assuming your chess piece is a instance of SpecifyCapture, if not specified *the framework assumes you want to reflect both*.
 
 To reflect either, all you have to do is the following:
 > @VerticalSymmetry(SpecificReflection.PLAYABLES)
+>
 > @HorizonalSymmetry(SpecificReflection.CAPTURE)
 
 You can make those specifications in any way you need.

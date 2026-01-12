@@ -3,10 +3,7 @@ package qchess.chess.create.direction;
 import org.jetbrains.annotations.NotNull;
 import qchess.chess.create.Coordinate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Quentin Smith
@@ -38,13 +35,13 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
             for (int j = i + 1; j < coords.size(); j++) {
                 if (distance(coords.get(smallestCoordIndex)) > distance(coords.get(j))) {
                     smallestCoordIndex = j;
-                }
-            }
+                } // if
+            } // for
 
             Coordinate temp = coords.get(i);
             coords.set(i, coords.get(smallestCoordIndex));
             coords.set(smallestCoordIndex, temp);
-        }
+        } // for
     }
 
     /**
@@ -94,6 +91,14 @@ public abstract class ChessDirection implements Iterable<Coordinate> {
      */
     public int getSize() {
         return coordinates.size();
+    }
+
+    /**
+     * Retains all coordinates that both directions share.
+     * @param other the other direction.
+     */
+    public void retainAll(ChessDirection other) {
+        this.coordinates.retainAll(other.coordinates);
     }
 
     /**
