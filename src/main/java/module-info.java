@@ -1,4 +1,4 @@
-module QChess {
+module qchess.chess {
     requires javafx.base;
     requires javafx.controls;
     requires javafx.graphics;
