@@ -11,6 +11,7 @@ import qchess.chess.chessmen.*;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.logic.ChessBoard;
+import qchess.chess.logic.ChessPosition;
 import qchess.chess.logic.event.ChessEvent;
 
 import java.io.IOException;
@@ -29,14 +30,24 @@ public class QChessApp extends Application {
     public void init() {
         Image img = new Image("galaxybackground.png");
         background = new ImageView(img); // provide image
+        Rook rook1 = new Rook(new Coordinate(0,1), Team.WHITE);
+        Rook rook2 = new Rook(new Coordinate(0,7), Team.WHITE);
+
+
         chessBoard = ChessBoard.newBuilder()
-                .emptyChessBoard()
-                .add(new King(new Coordinate(0,0), Team.BLACK))
-                .add(new King(new Coordinate(2,0), Team.WHITE))
-                .add(new Queen(new Coordinate(1,5), Team.WHITE))
-                .add(new Queen(new Coordinate(3,5), Team.WHITE))
+                .emptyNineSixtyChessBoard()
+                .add(new TesterChessPiece(new Coordinate(7,6), Team.BLACK))
                 .build()
         ;
+
+        for (ChessPosition pos: chessBoard.chessPositions) {
+            if (pos.getChessPiece() != null && (pos.getChessPiece() instanceof Rook || pos.getChessPiece() instanceof King || pos.getChessPiece() instanceof Pawn)) {
+
+            } else {
+                //pos.setChessPiece(null);
+            }
+        }
+        // chessBoard.chessPositions[new Coordinate(5,5).getBtnID()].setChessPiece(new Bishop(new Coordinate(3,3), Team.WHITE));
 
         chessBoard.launchGame();
 

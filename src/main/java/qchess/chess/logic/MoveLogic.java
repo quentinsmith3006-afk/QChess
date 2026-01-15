@@ -7,6 +7,7 @@ import qchess.chess.create.MovesType;
 import qchess.chess.create.Team;
 import qchess.chess.create.direction.CastleVector;
 import qchess.chess.create.direction.PieceScalar;
+import qchess.chess.create.exceptions.IncompleteSwitchPositionsException;
 import qchess.chess.create.exceptions.NothingToCaptureException;
 import qchess.chess.create.exceptions.PieceInWayException;
 import qchess.chess.create.interfaces.*;
@@ -15,11 +16,12 @@ import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.special.Enpassant;
 import qchess.chess.logic.event.*;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * <p>
  * This class contains all move logic that pertains to chess pieces. This includes all chess rules that
  * govern chess piece movement.
@@ -47,10 +49,14 @@ public class MoveLogic extends ChessLogic {
     private final ChessPosition[] drawByRepetitionStorageWhite;
     private final ChessPosition[] drawByRepetitionStorageBlack;
 
-    private final ArrayList<PinInformation> pinInformation;
-    private final ArrayList<CheckInformation> checkInformation;
+    private final ArrayList<Information> pinInformation;
+    private final ArrayList<Information> checkInformation;
 
+    final HashMap<String, Boolean> castleIsPossibleMap;
     final HashMap<String, Boolean> canCastleMap;
+
+
+    boolean altCastle = false;
 
     // debugging
     int num;
@@ -65,29 +71,39 @@ public class MoveLogic extends ChessLogic {
     Enpassant enpassant; // records whether there is an enpassant piece or not.
 
     /**
-     * Holds the 3 chess pieces involved in a pin: pinner, pinned and checkable.
-     * @param pinner piece that pins {@code pinned} to {@code checkable}.
-     * @param pinned piece that is pinned.
+     * Holds the 3 chess pieces involved in a pin: instigator, victim and checkable.
+     * @param pinner piece that pins {@code victim} to {@code checkable}.
+     * @param pinned piece that is victim.
      * @param checkable piece which can be checked.
      */
     record PinnerPinnedCheckable(ChessPiece pinner, ChessPiece pinned, ChessPiece checkable) {}
 
     /**
-     * Holds the information regarding a pin.
-     * @param pinDirection The exact {@code ChessDirection} originating from {@code pinnerPiece} which pins {@code pinnedPiece} to a checkable
-     * @param pinner piece that pins {@code pinned} to a checkable.
-     * @param pinned piece that is pinned.
+     *
      */
-    record PinInformation(ChessDirection pinDirection, ChessPiece pinned, ChessPiece pinner) {} // Renamed from pinnedPiece to pinned
+    sealed interface Information {
+        Integer distFromOrigin();
+        ChessDirection direction();
+        ChessPiece victim();
+        ChessPiece instigator();
+    }
+
+    /**
+     * Holds the information regarding a pin.
+     * @param direction The exact {@code ChessDirection} originating from {@code pinnerPiece} which pins {@code pinnedPiece} to a checkable
+     * @param instigator piece that pins {@code victim} to a checkable.
+     * @param victim piece that is victim.
+     */
+    record PinInformation(Integer distFromOrigin, ChessDirection direction, ChessPiece victim, ChessPiece instigator) implements Information {} // Renamed from pinnedPiece to victim
 
     /**
      * Holds the information regarding a check.
      * @param distFromOrigin the distance of the checkable from the checking piece.
-     * @param checkDirection the exact {@code ChessDirection} originating from {@code checkingPiece} which checks a checkable.
-     * @param checkedPiece the checkable chess piece.
-     * @param checkingPiece the chess piece that initiates check onto a checkable.
+     * @param direction the exact {@code ChessDirection} originating from {@code instigator} which checks a checkable.
+     * @param victim the checkable chess piece.
+     * @param instigator the chess piece that initiates check onto a checkable.
      */
-    record CheckInformation(Integer distFromOrigin, ChessDirection checkDirection, ChessPiece checkedPiece, ChessPiece checkingPiece) {}
+    record CheckInformation(Integer distFromOrigin, ChessDirection direction, ChessPiece victim, ChessPiece instigator) implements Information {}
 
     /**
      * Initializes storage capabilities for various items of interest.
@@ -98,6 +114,7 @@ public class MoveLogic extends ChessLogic {
         
         pinInformation = new ArrayList<>();
         checkInformation = new ArrayList<>();
+        castleIsPossibleMap = new HashMap<>();
         canCastleMap = new HashMap<>();
 
         chessPieceNumMovesMap = new HashMap<>();
@@ -134,7 +151,15 @@ public class MoveLogic extends ChessLogic {
         if (pastChessPosition != null) {
             ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
 
-            if (pastChessPiece != null && (pastChessPiece.getTeam() != chessPiece.getTeam() || chessPiece instanceof SpecialPiece)) {
+            if (!(clickedPosition.getChessPiece() instanceof Castlable) && altCastle) {
+                castle((Castlable) pastChessPiece, pastChessPiece, clickedPosition, chessPositions);
+                altCastle = false;
+                return;
+            }
+            // Clicked castlable twice
+            altCastle = pastChessPiece instanceof Castlable && pastChessPiece.equals(chessPiece);
+
+            if (pastChessPiece != null && (pastChessPiece.getTeam() != chessPiece.getTeam() || chessPiece instanceof SpecialPiece) && pastChessPiece.getTeam() == chessBoard.playerTeam) {
                 disablePastPlayablePositions(pastChessPiece);
                 disablePastPositionsAttacked(pastChessPiece);
 
@@ -273,18 +298,71 @@ public class MoveLogic extends ChessLogic {
      */
     private void castle(Castlable castlablePiece, ChessPiece pastChessPiece, ChessPosition clickedPosition, ChessPosition[] chessPositions) {
         HashMap<PieceScalar, CastleVector> castleDirections = (castlablePiece.getInitializedCastleDirections());
-        castleDirections.forEach((scalar, vector) -> {
-            for (Coordinate coordinate : scalar) {
-                ChessPiece terminalPiece = chessPositions[vector.getTerminalPoint().getBtnID()].getChessPiece();
-                if (clickedPosition.coordinate.equals(coordinate) && !terminalPiece.hasMoved()) {
 
-                    move(chessPositions[vector.getTerminalPoint().getBtnID()], chessPositions[vector.getInitialPoint().getBtnID()]);
-                    move(pastChessPosition, chessPositions[coordinate.getBtnID()]);
-                    chessBoard.fireEvent(new CastleEvent(pastChessPiece, terminalPiece));
-                    castlablePiece.setHasCastled(true);
-                } // if
+        for (Map.Entry<PieceScalar, CastleVector> entry : castleDirections.entrySet()) {
+
+            PieceScalar scalar = entry.getKey();
+            CastleVector vector = entry.getValue();
+            int vectorTerminalPointBtnID = vector.getTerminalPoint().getBtnID();
+            if (!canCastleMap.get(vector.getName())) {
+                continue;
+            }
+            ArrayList<Coordinate> coordinates = new ArrayList<>();
+            for (Coordinate coord : scalar) {
+                coordinates.add(coord);
             } // for
-        });
+
+            ChessPiece terminalPiece = chessPositions[vectorTerminalPointBtnID].getChessPiece();
+            boolean castleDependentWasClicked = clickedPosition.coordinate.equals(vector.getTerminalPoint());
+            boolean posDesignatedForCastlingWasClicked = coordinates.contains(clickedPosition.coordinate);
+
+            if (!terminalPiece.hasMoved() && (posDesignatedForCastlingWasClicked || (altCastle && castleDependentWasClicked))) {
+                disablePastPlayablePositions((ChessPiece) castlablePiece);
+                int dependentToBtnID = vector.getDependentTo().getBtnID();
+                int castlableToBtnID = vector.getCastlableTo().getBtnID();
+
+                ChessPosition positionOfDependent = chessPositions[vectorTerminalPointBtnID];
+                ChessPosition posWhereDependentGoes = chessPositions[dependentToBtnID];
+                try {
+                    move(positionOfDependent, posWhereDependentGoes, false);
+                } catch (PieceInWayException e) {
+                    Coordinate coordOfCoCastlingPiece = positionOfDependent.getChessPiece().getCoordinate();
+                    // If there is any piece in the way then it is the castlable.
+                    if (!coordOfCoCastlingPiece.equals(vector.getDependentTo())) {
+                        System.out.println(" SWITCH");
+                        switchPlaces(posWhereDependentGoes, positionOfDependent);
+                    } // if
+
+                    ChessPosition dependentToPos = chessPositions[dependentToBtnID];
+                    if (dependentToPos.getChessPiece() == null) {
+                        move(chessPositions[dependentToBtnID], dependentToPos, false);
+                    } // if
+                } // catch
+
+                try {
+                    System.out.println(chessPositions[castlableToBtnID].getChessPiece() + " CHESSPIECE");
+                    System.out.println(pastChessPiece);
+                    move(chessPositions[pastChessPiece.getBtnID()], chessPositions[castlableToBtnID], false);
+                } catch (PieceInWayException e) {
+                    if (!pastChessPiece.getCoordinate().equals(vector.getCastlableTo())) {
+                        System.out.println(pastChessPiece.getCoordinate() + " " + vector.getCastlableTo() + " GEN");
+                        switchPlaces(chessPositions[castlableToBtnID], chessPositions[pastChessPiece.getBtnID()]);
+                    } // if
+
+                    ChessPosition castlableToPos = chessPositions[castlableToBtnID];
+                    if (castlableToPos.getChessPiece() == null) {
+                        move(pastChessPosition, castlableToPos, false);
+                    } // if
+                } // catch
+
+                // ensures only one movement event call
+                chessBoard.fireEvent(new MovementEvent(pastChessPiece));
+                chessBoard.enableChessPieces();
+
+                chessBoard.fireEvent(new CastleEvent(pastChessPiece, terminalPiece));
+                castlablePiece.setHasCastled(true);
+            } // if
+        } // for-each
     }
 
     /**
@@ -297,7 +375,7 @@ public class MoveLogic extends ChessLogic {
         boolean hasChessPiece = movedChessPiece != null;
         if (chessBoard.drawAllowed) {
             numMovesToFiftyMoveRuleDraw = 0;
-        }
+        } // if
 
         // Theoretically impossible for this conditional to be false. It is here just to be safe
         if (hasChessPiece) {
@@ -356,8 +434,8 @@ public class MoveLogic extends ChessLogic {
      */
     List<ChessPosition> playableSquaresRefinery(ChessPiece chessPiece, ChessPosition clickedPosition, ChessPosition[] chessPositions, boolean canSetAttack, boolean isFromClick) {
         boolean pieceIsPinning = false;
-        for (PinInformation info : pinInformation) {
-            if (chessPiece.equals(info.pinner())) {
+        for (Information info : pinInformation) {
+            if (chessPiece.equals(info.instigator())) {
                 pieceIsPinning = true;
                 break;
             } // if
@@ -372,7 +450,7 @@ public class MoveLogic extends ChessLogic {
         The memoization has no real affect if the game is in a state of constant movement because each move causes a
         massive change on the chess board that the memoization algorithm currently can't account for.
          */
-        if (memoizedPastPositions.containsKey(chessPiece) && isFromClick && !pieceIsPinning) {
+        if (memoizedPastPositions.containsKey(chessPiece) && isFromClick && !pieceIsPinning && !(chessPiece instanceof Castlable)) {
 
             pastChessPosition = clickedPosition;
 
@@ -422,7 +500,6 @@ public class MoveLogic extends ChessLogic {
 
         enableRefinedPlayableSquares(chessPiece, pastPositions, isFromClick);
 
-
         chessPieceNumMovesMap.put(chessPiece, numMovesAvailable);
 
         return attackedPositions;
@@ -435,22 +512,29 @@ public class MoveLogic extends ChessLogic {
      * @param chessPositions all chess positions on the chess board.
      */
     private void determineCastlingMoves(ChessPiece chessPiece, Castlable castlablePiece, ChessPosition[] chessPositions) {
+
         HashMap<PieceScalar, CastleVector> castleDirections = castlablePiece.getInitializedCastleDirections();
+
         castleDirections.forEach((scalar, castleVector) -> {
             boolean canCastle = false;
+            boolean castlePossible = false;
+
 
             if (!castlablePiece.hasCastled() && !chessPiece.hasMoved()) {
                 ChessPiece terminalPiece;
                 try {
                     terminalPiece = chessPositions[castleVector.getTerminalPoint().getBtnID()].getChessPiece();
                 } catch (NoSuchElementException nsee) {
+
                     terminalPiece = null;
                 } // try-catch
 
-                boolean terminalPieceConditionals = terminalPiece != null && !terminalPiece.hasMoved();
 
+
+                boolean terminalPieceConditionals = terminalPiece != null && !terminalPiece.hasMoved();
                 if (terminalPieceConditionals) {
-                    canCastle = true;
+
+                    castlePossible = true;
 
                     boolean vectorLineSegmentEmpty = false;
 
@@ -458,7 +542,9 @@ public class MoveLogic extends ChessLogic {
                         if (chessPiece instanceof Checkable && chessBoard.checkAllowed) {
                             ChessPosition posOfFocus = chessBoard.chessPositions[coordinate.getBtnID()];
                             if (posOfFocus != null && posOfFocus.isAttacked()) {
-                                break;
+                                if (!terminalPiece.equals(posOfFocus.getChessPiece())) {
+                                    break;
+                                } // if
                             } // if
                         } // if
                         if (coordinate.equals(castleVector.getTerminalPoint())) {
@@ -470,19 +556,27 @@ public class MoveLogic extends ChessLogic {
                         } // if
                     } // for
 
-                    if (castleVector.getCastleDependent() != null) {
+                    ChessPosition kingTo = chessBoard.chessPositions[castleVector.getCastlableTo().getBtnID()];
+                    ChessPosition dependentTo = chessBoard.chessPositions[castleVector.getDependentTo().getBtnID()];
+                    boolean kingToEmpty = kingTo.getChessPiece() == null || kingTo.getChessPiece().equals(terminalPiece) || kingTo.getChessPiece().equals(chessPiece);
+
+                    boolean dependentToEmpty = dependentTo.getChessPiece() == null  || dependentTo.getChessPiece().equals(terminalPiece) || dependentTo.getChessPiece().equals(chessPiece);
+
+                    if (castleVector.getCastleDependent() != null && kingToEmpty && dependentToEmpty && !kingTo.isAttacked()) {
                         if (vectorLineSegmentEmpty && castleVector.getCastleDependent().isOnStart()) {
                             for (Coordinate coordinate : scalar) {
+                                canCastleMap.put(castleVector.getName(), true);
                                 ChessPosition posOfCoord = chessPositions[coordinate.getBtnID()];
                                 pastPositions.add(posOfCoord);
-                                System.out.println("gg");
                             } // for
+                            canCastle = true;
                         } // if
                     } // if
                 } // if
             }
-
             canCastleMap.put(castleVector.getName(), canCastle);
+
+            castleIsPossibleMap.put(castleVector.getName(), castlePossible);
         }); // for-each
     }
 
@@ -538,7 +632,7 @@ public class MoveLogic extends ChessLogic {
                         if (coordinatePiece instanceof Checkable && chessBoard.checkAllowed) {
                             if (firstPotentialPin) {
                                 PinInformation info = new PinInformation (
-                                        direction, coordinatePiece, chessPiece
+                                        ++distFromOrigin, direction, coordinatePiece, chessPiece
                                 );
 
                                 pinInformation.add(info);
@@ -638,7 +732,7 @@ public class MoveLogic extends ChessLogic {
                         if (coordinatePiece instanceof Checkable && chessBoard.checkAllowed) {
                             if (firstPotentialPin) {
                                 PinInformation info = new PinInformation (
-                                        direction, coordinatePiece, chessPiece
+                                        ++distFromOrigin, direction, coordinatePiece, chessPiece
                                 );
 
                                 pinInformation.add(info);
@@ -725,51 +819,32 @@ public class MoveLogic extends ChessLogic {
      * @param isFromClick whether the method call is the result of a click or not.
      */
     private void enableRefinedPlayableSquares(ChessPiece chessPiece, List<ChessPosition> pastPositions, boolean isFromClick) {
+        List<Coordinate> convertedPosToCoord = pastPositions.stream()
+                .map(ChessPosition::getCoordinate)
+                .toList();
+
         if (chessPiece.isPinned() && chessBoard.pinAllowed) {
+            /*
+            Use pinInformation and make another for-each loop to allow chess pieces to
+            move along the pinning vector.
+             */
+
+            for (Information info : pinInformation) {
+                pinPointMoves(chessPiece, convertedPosToCoord, info, info.direction().getDirectionFromOrigin(), isFromClick);
+            } // for-each
+
             return;
         } // if
 
         if ((chessBoard.pieceInCheck) && !(chessPiece instanceof Checkable)) {
-
-            List<Coordinate> convertedPosToCoord = pastPositions.stream()
-                    .map(ChessPosition::getCoordinate)
-                    .toList();
-
-            ArrayList<Coordinate> intersect = new ArrayList<>(checkInformation.getFirst().checkDirection().getDirectionFromOrigin());
+            ArrayList<Coordinate> intersect = new ArrayList<>(checkInformation.getFirst().direction().getDirectionFromOrigin());
             for (int i = 1; i < checkInformation.size(); i++) {
-                intersect.retainAll(checkInformation.get(i).checkDirection().getDirectionFromOrigin());
-            }
+                intersect.retainAll(checkInformation.get(i).direction().getDirectionFromOrigin());
+            } // for
 
-            for (CheckInformation info : checkInformation) {
-                int distFromOrigin = 0;
-
-                for (Coordinate coord : intersect) {
-                    if (convertedPosToCoord.contains(coord)) {
-                        if (info.distFromOrigin() >= distFromOrigin && info.checkedPiece().getTeam() == chessPiece.getTeam()) { // making equals fixes piece not being able to capture when piece in check
-
-                            ChessPiece pieceInAttackVector = chessBoard.chessPositions[coord.getBtnID()].getChessPiece();
-
-                            if (pieceInAttackVector != null) {
-                                if (pieceInAttackVector.getTeam() != chessPiece.getTeam()) {
-                                    if (isFromClick) {
-                                        chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
-                                    } // if
-                                    numMovesAvailable++;
-                                } // if
-                            } else {
-                                if (isFromClick) {
-                                    chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
-                                } // if
-                                numMovesAvailable++;
-                            } // else
-
-                        } // if
-                    } // if
-
-                    distFromOrigin++;
-                } // for-each
+            for (Information info : checkInformation) {
+                pinPointMoves(chessPiece, convertedPosToCoord, info, intersect, isFromClick);
             } // for-each
-
             return;
         } // if
 
@@ -795,6 +870,46 @@ public class MoveLogic extends ChessLogic {
                 numMovesAvailable++;
             } // if
         } // for-each
+    }
+
+    /**
+     * Cross-references {@code possibleMovesWithCondition} with {@code convertedPosToCoord} to see display the moves that are in both.
+     * @param chessPiece clicked chess piece.
+     * @param convertedPosToCoord available chess positions converted to their respective coordinates.
+     * @param info information regarding the pin/check involved.
+     * @param possibleMovesWithCondition only moves which can be played given a active condition.
+     * @param isFromClick true if this method call is produced from a click and false if not.
+     */
+    private void pinPointMoves(ChessPiece chessPiece, List<Coordinate> convertedPosToCoord, Information info, ArrayList<Coordinate> possibleMovesWithCondition, boolean isFromClick) {
+
+            int distFromOrigin = 0;
+
+            for (Coordinate coord : possibleMovesWithCondition) {
+                if (convertedPosToCoord.contains(coord)) {
+                    if (info.distFromOrigin() >= distFromOrigin && info.victim().getTeam() == chessPiece.getTeam()) { // making equals fixes piece not being able to capture when piece in check
+
+                        ChessPiece pieceInAttackVector = chessBoard.chessPositions[coord.getBtnID()].getChessPiece();
+
+                        if (pieceInAttackVector != null) {
+                            if (pieceInAttackVector.getTeam() != chessPiece.getTeam()) {
+                                if (isFromClick) {
+                                    chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
+                                } // if
+                                numMovesAvailable++;
+                            } // if
+                        } else {
+                            if (isFromClick) {
+                                chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
+                            } // if
+                            numMovesAvailable++;
+                        } // else
+
+                    } // if
+                } // if
+
+                distFromOrigin++;
+            } // for-each
+
     }
 
     /**
@@ -922,14 +1037,50 @@ public class MoveLogic extends ChessLogic {
     }
 
     /**
+     * Switches chess pieces at {@code pastPost} and {@code futurePos}.
+     * @param pastPos position which the chess piece is currently.
+     * @param futurePos position which the chess piece will move to.
+     */
+    public void switchPlaces(ChessPosition pastPos, ChessPosition futurePos) {
+        System.out.println(futurePos.getChessPiece() + " " + pastPos.getChessPiece());
+        if (futurePos.getChessPiece() == null || pastPos.getChessPiece() == null) {
+            throw new IncompleteSwitchPositionsException("pastPost and futurePos must have chess pieces to switch them.");
+        }
+        ChessPiece otherPiece = pastPos.getChessPiece();
+        ChessPiece tempPiece = futurePos.getChessPiece();
+
+        processGameEnd(otherPiece, futurePos);
+
+        futurePos.setChessPiece(otherPiece);
+        futurePos.setGraphic(otherPiece.getGraphic());
+        otherPiece.setPosition(futurePos);
+        otherPiece.setCoordinate(futurePos.getCoordinate());
+        otherPiece.wasMoved();
+
+        processGameEnd(tempPiece, pastPos);
+
+        pastPos.setChessPiece(tempPiece);
+        pastPos.setGraphic(tempPiece.getGraphic());
+        tempPiece.setPosition(pastPos);
+        tempPiece.setCoordinate(pastPos.getCoordinate());
+        tempPiece.wasMoved();
+
+        // no movement event
+    }
+
+    /**
      * Moves a chess piece from {@code pastPos} to {@code futurePos}.
      * @throws PieceInWayException if {@code futurePos} has a chess piece.
      * @param pastPos position which the chess piece is currently.
      * @param futurePos position which the chess piece will move to.
+     * @param callFiresMovementEvent true if the method call fires a movement event and false if not.
      */
-    public void move(ChessPosition pastPos, ChessPosition futurePos) {
+    private void move(ChessPosition pastPos, ChessPosition futurePos, boolean callFiresMovementEvent) {
+        if (pastPos.equals(futurePos)) {
+            return;
+        } // if
         if (futurePos.getChessPiece() != null) {
-            throw new PieceInWayException("Movement square is occupied, try capture() instead.");
+            throw new PieceInWayException("Movement square is occupied, try capture() instead.", futurePos.getChessPiece());
         } // if
 
         ChessPiece chessPiece = pastPos.getChessPiece();
@@ -979,11 +1130,21 @@ public class MoveLogic extends ChessLogic {
         } // if
 
         // Castling calls move twice: the if statement ensures only 1 movement event is created
-        if (chessPiece.getTeam() == chessBoard.playerTeam) {
+        if (chessPiece.getTeam() == chessBoard.playerTeam && callFiresMovementEvent) {
             chessBoard.fireEvent(new MovementEvent(chessPiece));
         } // if
 
         chessBoard.enableChessPieces();
+    }
+
+    /**
+     * Moves a chess piece from {@code pastPos} to {@code futurePos}.
+     * @throws PieceInWayException if {@code futurePos} has a chess piece.
+     * @param pastPos position which the chess piece is currently.
+     * @param futurePos position which the chess piece will move to.
+     */
+    public void move(ChessPosition pastPos, ChessPosition futurePos) {
+        this.move(pastPos, futurePos, true);
     }
 
     /**
@@ -993,7 +1154,6 @@ public class MoveLogic extends ChessLogic {
         for (ChessPosition pos : chessBoard.chessPositions) {
             pos.attackers.clear();
             pos.setIsAttacked(false);
-            pos.setText("");
         } // for-each
     }
 
@@ -1028,7 +1188,6 @@ public class MoveLogic extends ChessLogic {
         for (ChessPosition pos : playableSquaresRefinery(oneOfAllChessPieces, futurePos, chessBoard.chessPositions, true, false)) {
             pos.attackers.add(oneOfAllChessPieces);
             pos.setIsAttacked(true);
-            pos.setText("ATTK");
         } // for-each
     }
 
@@ -1049,6 +1208,7 @@ public class MoveLogic extends ChessLogic {
         } // for-each
 
         for (ChessPosition position : playableSquaresRefinery(chessPiece, futurePos, chessBoard.chessPositions, true, false)) {
+
             if (position.getChessPiece() instanceof Checkable && position.getChessPiece().getTeam() != chessPiece.getTeam()) {
                 chessBoard.fireEvent(new CheckEvent(position.getChessPiece()));
                 return true;
@@ -1076,7 +1236,6 @@ public class MoveLogic extends ChessLogic {
 
         for (Map.Entry<ChessPiece, Integer> numMovesEntry : chessPieceNumMovesMap.entrySet()) {
             if (numMovesEntry.getKey().getTeam() != chessPiece.getTeam()) {
-                System.out.println(numMovesEntry.getKey() + " " + numMovesEntry.getKey().getTeam());
                 totalMoves += numMovesEntry.getValue();
             } // if
         } // for-each
@@ -1091,9 +1250,6 @@ public class MoveLogic extends ChessLogic {
             chessBoard.fireEvent(new DrawEvent(chessPiece));
         } // else
 
-        System.out.println();
-        System.out.println("Total moves: " + totalMoves);
-        System.out.println();
     }
 
     /**
@@ -1116,10 +1272,10 @@ public class MoveLogic extends ChessLogic {
 
         /*
         for (Map.Entry<ChessPiece, ChessPiece> pinnerPinEntry : pinnerPinnedMap.entrySet()) {
-            ChessPiece pinner = pinnerPinEntry.getKey();
-            ChessPiece pinned = pinnerPinEntry.getValue();
+            ChessPiece instigator = pinnerPinEntry.getKey();
+            ChessPiece victim = pinnerPinEntry.getValue();
 
-            processPin(pinner, pinned);
+            processPin(instigator, victim);
         } // for-each
 
          */
@@ -1127,10 +1283,10 @@ public class MoveLogic extends ChessLogic {
 
     /**
      * Updates the pins in the chess board's present state.
-     * If a pin is invalid - no longer blocking an attack on a checkable - then the pinned is no longer pinned.
+     * If a pin is invalid - no longer blocking an attack on a checkable - then the victim is no longer victim.
      *
      * @param pinner chess piece which pins.
-     * @param pinned chess piece which is pinned.
+     * @param pinned chess piece which is victim.
      */
     void processPin(ChessPiece pinner, ChessPiece pinned) {
         List<ChessDirection> directions;
@@ -1291,6 +1447,6 @@ public class MoveLogic extends ChessLogic {
      * @return a hashmap with the name of the vector as the key and a boolean which is true when castling is possible on the castle vector.
      */
     public HashMap<String, Boolean> getCastleInformation() {
-        return canCastleMap;
+        return castleIsPossibleMap;
     }
 }

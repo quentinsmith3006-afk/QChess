@@ -2,7 +2,7 @@ package qchess.chess.logic;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * All logic based classes extend chess logic. Chess logic simply holds the chess board which all other Logics
  * rely on.
  */

@@ -47,6 +47,8 @@ public class ChessBoard extends GridPane {
     protected boolean pinAllowed = true;
     protected boolean drawAllowed = true;
     protected boolean pieceInCheck = false;
+    protected boolean nineSixtyCastling = false;
+    protected List<ChessPiece> rooks;
     protected MoveLogic moveLogic;
     private boolean paused;
     boolean singleTeam;
@@ -151,6 +153,7 @@ public class ChessBoard extends GridPane {
 
             // init castle vectors
             if (chessPiece instanceof Castlable castlable && castlingAllowed) {
+
                 HashMap<PieceScalar, CastleVector> castleDirections = getCastleDirectionsMap(castlable);
 
                 castlable.setInitializedCastleDirections(castleDirections);
@@ -448,6 +451,7 @@ public class ChessBoard extends GridPane {
          */
         private enum BoardType {
             NORMAL,
+            NINE_SIXTY,
             EMPTY,
             ALGEBRAIC,
             BTNID,
@@ -475,30 +479,35 @@ public class ChessBoard extends GridPane {
             if (row == 1) {
                 Pawn pawn = new Pawn(pos, Team.WHITE);
                 chessPositions[pos.getBtnID()].setChessPiece(pawn);
+                return;
             }
 
             // white rook
             if (row == 0 && (col == 0 || col == 7)) {
                 Rook rook = new Rook(pos, Team.WHITE);
                 chessPositions[pos.getBtnID()].setChessPiece(rook);
+                return;
             }
 
             // white knight
             if (row == 0 && (col == 1 || col == 6)) {
                 Knight knight = new Knight(pos, Team.WHITE);
                 chessPositions[pos.getBtnID()].setChessPiece(knight);
+                return;
             }
 
             // white bishop
             if (row == 0 && (col == 2 || col == 5)) {
                 Bishop bishop = new Bishop(pos, Team.WHITE);
                 chessPositions[pos.getBtnID()].setChessPiece(bishop);
+                return;
             }
 
             // white queen
             if (row == 0 && col == 3) {
                 Queen queen = new Queen(pos, Team.WHITE);
                 chessPositions[pos.getBtnID()].setChessPiece(queen);
+                return;
             }
 
             // white king
@@ -520,30 +529,35 @@ public class ChessBoard extends GridPane {
             if (row == 6) {
                 Pawn pawn = new Pawn(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(pawn);
+                return;
             }
 
             // black rook
             if (row == 7 && (col == 0 || col == 7)) {
                 Rook rook = new Rook(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(rook);
+                return;
             }
 
             // black knight
             if (row == 7 && (col == 1 || col == 6)) {
                 Knight knight = new Knight(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(knight);
+                return;
             }
 
             // black bishop
             if (row == 7 && (col == 2 || col == 5)) {
                 Bishop bishop = new Bishop(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(bishop);
+                return;
             }
 
             // black queen
             if (row == 7 && col == 3) {
                 Queen queen = new Queen(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(queen);
+                return;
             }
 
             // black king
@@ -551,6 +565,111 @@ public class ChessBoard extends GridPane {
                 King king = new King(pos, Team.BLACK);
                 chessPositions[pos.getBtnID()].setChessPiece(king);
             }
+        }
+
+        /**
+         * Adds the randomized back rank white team pieces according to 960 chess rules to the chess board.
+         * @param row row which may have a chess piece placed.
+         * @param col column which may have a chess piece placed.
+         * @param pattern the randomized back-rank pattern.
+         */
+        private void addNineSixtyWhiteTeam(int row, int col, ArrayList<Character> pattern) {
+            Coordinate pos = new Coordinate(row, col);
+
+            if (row == 1) {
+                Pawn pawn = new Pawn(pos, Team.WHITE);
+                chessPositions[pos.getBtnID()].setChessPiece(pawn);
+            } // if
+
+            if (row == 0) {
+                for (int pieceIndex = 0; pieceIndex < pattern.size(); pieceIndex++) {
+                    pos = new Coordinate(row, pieceIndex);
+
+                    switch (pattern.get(pieceIndex)) {
+                        case 'N' -> chessPositions[pos.getBtnID()].setChessPiece(new Knight(pos, Team.WHITE));
+                        case 'B' -> chessPositions[pos.getBtnID()].setChessPiece(new Bishop(pos, Team.WHITE));
+                        case 'K' -> chessPositions[pos.getBtnID()].setChessPiece(new King(pos, Team.WHITE));
+                        case 'Q' -> chessPositions[pos.getBtnID()].setChessPiece(new Queen(pos, Team.WHITE));
+                        case 'R' -> {
+                            Rook rook = new Rook(pos, Team.WHITE);
+                            chessPositions[pos.getBtnID()].setChessPiece(rook);
+                            chessBoard.rooks.add(rook);
+                        } // case
+                    } // switch
+                } // for
+            } // if
+        }
+
+        /**
+         * Adds the randomized back rank black team pieces according to 960 chess rules to the chess board.
+         * @param row row which may have a chess piece placed.
+         * @param pattern the randomized back-rank pattern.
+         */
+        private void addNineSixtyTeam(int row, ArrayList<Character> pattern, int pawnRow, int chessMenRow, Team team) {
+            ArrayList<ChessPiece> blackTeamRooks = new ArrayList<>();
+
+            if (row == pawnRow) {
+                for (int i = 0; i < ChessBoard.width; i++) {
+                    Coordinate pos = new Coordinate(row, i);
+                    Pawn pawn = new Pawn(pos, team);
+                    chessPositions[pos.getBtnID()].setChessPiece(pawn);
+                }
+            } // if
+
+            if (row == chessMenRow) {
+                int kingPieceIndex = 0;
+
+                for (int pieceIndex = 0; pieceIndex < pattern.size(); pieceIndex++) {
+                    Coordinate pos = new Coordinate(row, pieceIndex);
+
+                    switch (pattern.get(pieceIndex)) {
+                        case 'N' -> chessPositions[pos.getBtnID()].setChessPiece(new Knight(pos, team));
+                        case 'B' -> chessPositions[pos.getBtnID()].setChessPiece(new Bishop(pos, team));
+                        case 'K' -> kingPieceIndex = pieceIndex;
+                        case 'Q' -> chessPositions[pos.getBtnID()].setChessPiece(new Queen(pos, team));
+                        case 'R' -> {
+                            Rook rook = new Rook(pos, team);
+                            blackTeamRooks.add(rook);
+                            chessPositions[pos.getBtnID()].setChessPiece(rook);
+                            chessBoard.rooks.add(rook);
+                        } // case
+                    } // switch
+                } // for
+
+                Coordinate pos = new Coordinate(row, kingPieceIndex);
+                chessPositions[pos.getBtnID()].setChessPiece(new King(pos, team, blackTeamRooks));
+            } // if
+        }
+
+        /**
+         * @param pattern String arraylist of characters indicating piece type. Piece types are from classic chess.
+         * @return true if {@code pattern} follows 960 chess rules and false otherwise.
+         */
+        private boolean followsNineSixtyRules(ArrayList<Character> pattern) {
+            boolean bishopOnOdd = false;
+            boolean bishopOnEven = false;
+            boolean kingBetweenRooks = false;
+            boolean firstRook = false;
+            boolean secondRook = false;
+            for (int pieceIndex = 0; pieceIndex < pattern.size(); pieceIndex++) {
+                if (pattern.get(pieceIndex).equals('R')) {
+                    if (firstRook) {
+                        secondRook = true;
+                    }
+                    firstRook = true;
+                } // if
+                if (pattern.get(pieceIndex).equals('K') && firstRook && !secondRook) {
+                    kingBetweenRooks = true;
+                } // if
+                if (pattern.get(pieceIndex).equals('B')) {
+                    if (pieceIndex % 2 == 0) {
+                        bishopOnEven = true;
+                    } else {
+                        bishopOnOdd = true;
+                    } // else
+                } // if
+            } // for
+            return bishopOnOdd && bishopOnEven && kingBetweenRooks;
         }
 
         /**
@@ -636,6 +755,60 @@ public class ChessBoard extends GridPane {
                     addBlackTeam(row, col);
                 } // for
             } // for
+
+            return this;
+        }
+
+        /**
+         * Creates a playable chess board which has its pieces set up as a classic chess game.
+         * @throws MultipleBoardTypesException if board types are not mutually exclusive.
+         * @return new state of the builder.
+         */
+        public Builder nineSixtyChessBoard() {
+            exclusivityCheck();
+            emptyChessBoard();
+            boardType = BoardType.NINE_SIXTY;
+            chessBoard.rooks = new ArrayList<>();
+
+            chessBoard.nineSixtyCastling = true;
+
+
+
+            ArrayList<Character> pattern = new  ArrayList<>();
+            pattern.add('Q');
+            pattern.add('N');
+            pattern.add('N');
+            pattern.add('R');
+            pattern.add('R');
+            pattern.add('B');
+            pattern.add('B');
+            pattern.add('K');
+            boolean a = true;
+            while (a) {
+                Collections.shuffle(pattern);
+                a = !followsNineSixtyRules(pattern);
+            } // while
+
+            for (int row = 0; row < 2; row++) {
+                addNineSixtyTeam(row, pattern, 1, 0, Team.WHITE);
+
+            } // for
+
+            for (int row = 6; row < 8; row++) {
+                addNineSixtyTeam(row, pattern, 6, 7, Team.BLACK);
+            } // for
+
+            return this;
+        }
+
+        public Builder emptyNineSixtyChessBoard() {
+            exclusivityCheck();
+            emptyChessBoard();
+
+            boardType = BoardType.NINE_SIXTY;
+            chessBoard.rooks = new ArrayList<>();
+
+            chessBoard.nineSixtyCastling = true;
 
             return this;
         }

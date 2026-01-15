@@ -12,14 +12,14 @@ import java.util.Objects;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * Each PieceScalar requires a {@code start} coordinate as the primary basis at which to compare other coordinates via
  * distance.
- *
+ * <br>
  * The {@code start} coordinate essentially acts as an anchor.
- *
+ * <br>
  * For QChess purposes, all scalars do is hold the coordinate values.
- *
+ * <br>
  * A scalar is primarily defined by a single point's change in row and column with respect to the start position.
  */
 public class PieceScalar extends ChessDirection {
@@ -169,5 +169,14 @@ public class PieceScalar extends ChessDirection {
 
         uncheckedCoordinates.addAll(additionalUncheckedCoordinates);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        for (Coordinate coordinate : this.coordinates) {
+            result.append("(").append(coordinate.toString()).append(") ");
+        }
+        return result.toString();
     }
 }

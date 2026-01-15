@@ -158,7 +158,7 @@ This is essentially a bishop.
 note: *if you do not provide graphical representations of your chess piece, the class name will represent it instead.*
 ```
 import qchess.chess.create.direction.ChessDirection;
-import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.direction.BoundedPieceVector;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;

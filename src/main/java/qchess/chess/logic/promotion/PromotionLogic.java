@@ -11,7 +11,7 @@ import qchess.chess.logic.event.PostPromotionEvent;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * Logic that pertains to promotion is contained here.
  */
 public class PromotionLogic extends ChessLogic {

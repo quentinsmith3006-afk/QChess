@@ -8,13 +8,17 @@ import java.util.HashSet;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
+ * <p>
  * Custom JavaFX component for a button.
  * Each chess position is a button which can be clicked.
  * Each chess position can hold nothing, or it can hold a chess piece.
- *
+ * </p>
+ * <br>
+ * <p>
  * All ChessPositions must have a coordinate.
  * To view the grid system:
+ * </p>
  * {@link <a href="https://github.com/quentinsmith3006-afk/QChess">QChess Github</a>}}
  */
 public class ChessPosition extends Button {

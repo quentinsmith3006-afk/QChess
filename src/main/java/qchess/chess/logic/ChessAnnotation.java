@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * Evaluates chess piece based annotations to return chess piece playables with different modifications to then be processed
  * by {@code qchess.chess.logic.MoveLogic}.
  * {@link qchess.chess.create.interfaces.SpecifyCapture}

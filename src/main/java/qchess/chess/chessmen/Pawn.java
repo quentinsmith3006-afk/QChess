@@ -3,13 +3,12 @@ package qchess.chess.chessmen;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
+import qchess.chess.create.direction.BoundedPieceVector;
 import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.direction.PieceScalar;
-import qchess.chess.create.direction.PieceVector;
 import qchess.chess.create.interfaces.Enpassantable;
 import qchess.chess.create.interfaces.Promotable;
 import qchess.chess.create.interfaces.SpecifyCapture;
-import qchess.chess.create.special.Enpassant;
 import qchess.chess.logic.promotion.PromotionSquares;
 
 import java.util.ArrayList;
@@ -64,8 +63,8 @@ public class Pawn extends ChessPiece implements SpecifyCapture, Promotable, Enpa
 
         int momentum = team == Team.BLACK ? -1 : 1;
 
-        PieceVector bottomRightVector = new PieceVector(this.coordinate, momentum, 1, 1);
-        PieceVector bottomLeftVector = new PieceVector(this.coordinate, momentum, -1, 1);
+        BoundedPieceVector bottomRightVector = new BoundedPieceVector(this.coordinate, momentum, 1, 1);
+        BoundedPieceVector bottomLeftVector = new BoundedPieceVector(this.coordinate, momentum, -1, 1);
 
         moves.add(bottomRightVector);
         moves.add(bottomLeftVector);

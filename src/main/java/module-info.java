@@ -12,4 +12,6 @@ module qchess.chess {
     exports qchess.chess.create;
     exports qchess.chess.logic.event;
     exports qchess.chess.logic;
+    exports qchess.chess.logic.promotion;
+
 }

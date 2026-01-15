@@ -6,9 +6,9 @@ import qchess.chess.create.ChessPiece;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * This is essentially is a button with a chess piece graphic in it.
- *
+ * <br>
  * This changes a traditional VBox by adding a button with a chess piece graphic.
  * That button triggers a promotion.
  */

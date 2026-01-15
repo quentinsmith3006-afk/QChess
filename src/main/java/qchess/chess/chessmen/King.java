@@ -3,18 +3,13 @@ package qchess.chess.chessmen;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
-import qchess.chess.create.direction.CastleVector;
-import qchess.chess.create.direction.ChessDirection;
-import qchess.chess.create.direction.PieceScalar;
-import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.direction.*;
 import qchess.chess.create.interfaces.Castlable;
 import qchess.chess.create.interfaces.Checkable;
 import qchess.chess.create.piecemodifiers.HorizonalSymmetry;
 import qchess.chess.create.piecemodifiers.VerticalSymmetry;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Quentin Smith
@@ -26,8 +21,36 @@ import java.util.List;
 @VerticalSymmetry
 public class King extends ChessPiece implements Checkable, Castlable {
     HashMap<PieceScalar, CastleVector> initializedCastleDirections;
+    ChessPiece[] castleDependents;
     public boolean castled;
 
+    /**
+     * Creates a classic king chess piece.
+     * @param position position of the chess piece.
+     * @param team team that the King is on.
+     * @param castleDependents specific pieces to be able to castle with the king.
+     */
+    public King(Coordinate position, Team team, Collection<ChessPiece> castleDependents) {
+        super(position, team, "/ChessAssets/WKing.png","/ChessAssets/BKing.png");
+        this.castleDependents = castleDependents.toArray(new ChessPiece[0]);
+    }
+
+    /**
+     * Creates a classic king chess piece.
+     * @param position position of the chess piece.
+     * @param team team that the King is on.
+     * @param castleDependents specific pieces to be able to castle with the king.
+     */
+    public King(Coordinate position, Team team, ChessPiece... castleDependents) {
+        super(position, team, "/ChessAssets/WKing.png","/ChessAssets/BKing.png");
+        this.castleDependents = castleDependents;
+    }
+
+    /**
+     * Creates a classic king chess piece.
+     * @param position position of the chess piece.
+     * @param team team that the King is on.
+     */
     public King(Coordinate position, Team team) {
         super(position, team, "/ChessAssets/WKing.png","/ChessAssets/BKing.png");
     }
@@ -36,7 +59,6 @@ public class King extends ChessPiece implements Checkable, Castlable {
     @Override
     public List<ChessDirection> getRawPlayableDirections() {
         List<ChessDirection> moves = new ArrayList<>();
-
 
         PieceScalar bottomLeft = new PieceScalar(this.coordinate, new Coordinate(getRow() - 1, getCol() - 1));
         PieceScalar bottom = new PieceScalar(this.coordinate, new Coordinate(getRow() - 1, getCol()));
@@ -60,6 +82,24 @@ public class King extends ChessPiece implements Checkable, Castlable {
         // represents the square where the user can click to castle
         PieceScalar leftCastlePlayable =  new PieceScalar(this.coordinate, new Coordinate(getRow(), getCol() - 2));
         PieceScalar rightCastlePlayable =  new PieceScalar(this.coordinate, new Coordinate(getRow(), getCol() + 2));
+
+        if (castleDependents != null) {
+            for (ChessPiece piece : castleDependents) {
+                if (piece.getCol() - startCoordinate.getCol() < 0) {
+                    leftVector = new Vector960(this.coordinate, piece);
+                    leftCastlePlayable =  new PieceScalar(this.coordinate, new Coordinate(getRow(), getCol() - 2));
+                } else if (piece.getCol() - startCoordinate.getCol() > 0) {
+                    rightVector = new Vector960(this.coordinate, piece);
+                    rightCastlePlayable =  new PieceScalar(this.coordinate, new Coordinate(getRow(), getCol() + 2));
+                }
+
+            }
+
+            moves.put(leftCastlePlayable, leftVector);
+            moves.put(rightCastlePlayable, rightVector);
+
+            return moves;
+        }
 
         moves.put(leftCastlePlayable, leftVector);
         moves.put(rightCastlePlayable, rightVector);
