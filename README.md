@@ -39,20 +39,16 @@ Features added to version 2:
 Latest Update:
 CHESS960 UPDATE:
 * Fixed pinned pieces not being able to move along the vectors that pinned them.
-*Fixed co-castling piece not disabling after castle.
-*Fixed checkables being unable to detect if a piece castle checks.
-*Fixed castling being dependent on co-castling piece safety.
-*Fixed unbounded vectors allowing diagonals to switch color.
-*Added Unbounded vectors.
+* Fixed co-castling piece not disabling after castle.
+* Fixed checkables being unable to detect if a piece castle checks.
+* Fixed castling being dependent on co-castling piece safety.
+* Fixed unbounded vectors allowing diagonals to switch color.
+* Added Unbounded vectors.
 --> Not bounded by the edges of the chess board.
-*Added dual purpose vector960 for both piece creation and castling.
---> This vector is automatically generated with its terminal point set to a chess piece specified in the vectors creation.
---> This vector basically connects 2 chess pieces.
-*Changed PieceVector to BoundedPieceVector and re-wrote it to rely on rise over run when calculating the vector's pathway.
-*Added new nineSixtyChessBoard and emptyNineSixtyChessBoard to the preset chess board selections.
-
-Future Features
-* Non-hardcoded enpassant
+* Added dual purpose vector960 for both piece creation and castling.
+--> This vector is automatically generated with its terminal point set to a chess piece specified in the vectors creation. (This vector basically connects 2 chess pieces).
+* Changed PieceVector to BoundedPieceVector and re-wrote it to rely on rise over run when calculating the vector's pathway.
+* Added new nineSixtyChessBoard and emptyNineSixtyChessBoard to the preset chess board selections.
 
 ## Contribution
 Feel free to contribute, just run tests and stuff. I will have to approve
