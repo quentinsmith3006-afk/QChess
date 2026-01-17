@@ -60,7 +60,6 @@ any pushes though.
 *Java(TM) SE Runtime Environment (build 21.0.9+7-LTS-338)*
 
 ## Installation
-*0.8.0* is the best version to use currently.
 **https://jitpack.io/#quentinsmith3006-afk/QChess**
 
 ## Grid Systems
