@@ -62,6 +62,7 @@ public class MoveLogic extends ChessLogic {
     final int numRepetitionToDraw = 3;
     int individualRepetitionToDraw = (numRepetitionToDraw * 2) - 1;
     int numMoves;
+    int numFullMoves;
     int numMovesToFiftyMoveRuleDraw;
     int numMovesAvailable;
     EnpassantInfo enpassantInfo; // records whether there is an enpassant piece or not.
@@ -349,6 +350,9 @@ public class MoveLogic extends ChessLogic {
 
                 // ensures only one movement event call
                 chessBoard.fireEvent(new MovementEvent(pastChessPiece));
+                if (pastChessPiece.getTeam() == Team.BLACK) {
+                    numFullMoves++;
+                }
                 chessBoard.enableChessPieces();
 
                 chessBoard.fireEvent(new CastleEvent(pastChessPiece, terminalPiece));
@@ -1124,6 +1128,9 @@ public class MoveLogic extends ChessLogic {
         // Castling calls move twice: the if statement ensures only 1 movement event is created
         if (chessPiece.getTeam() == chessBoard.playerTeam && callFiresMovementEvent) {
             chessBoard.fireEvent(new MovementEvent(chessPiece));
+            if (chessPiece.getTeam() == Team.BLACK) {
+                numFullMoves++;
+            }
         } // if
 
         chessBoard.enableChessPieces();
@@ -1425,12 +1432,21 @@ public class MoveLogic extends ChessLogic {
     /**
      * @return the total number of movements that occurred.
      */
-    public int getTotalNumMoves() {
+    public int getTotalNumHalfMoves() {
         return numMoves;
     }
 
     /**
-     * @return the enpassant piece if it is on the board and null if not.
+     * A getter method for the full movements on for a move logic. A full movement is incremented
+     * when black moves. A single full movement represents a move of both black and white teams.
+     * @return the total number of full movements that occurred.
+     */
+    public int getTotalNumFullMoves() {
+        return numFullMoves;
+    }
+
+    /**
+     * @return the information related to the enpassant piece if it is on the board and null if not.
      */
     public EnpassantInfo getEnpassantInfo() {
         return enpassantInfo;
