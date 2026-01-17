@@ -936,7 +936,6 @@ public class MoveLogic extends ChessLogic {
         Enpassant enpassant = new Enpassant(onePlaceUnder, enpassPawn.getTeam());
         this.enpassantInfo = new EnpassantInfo(enpassant.getCoordinate(), enpassPawn.getTeam());
         enpassant.setPosition(chessBoard.getChessPositions()[newBtnId]);
-        chessBoard.chessPieces.add(enpassant);
         onePlaceUnderPawn.setChessPiece(enpassant);
     }
 
@@ -1438,8 +1437,12 @@ public class MoveLogic extends ChessLogic {
     }
 
     /**
+     * <p>
      * A getter method for the full movements on for a move logic. A full movement is incremented
      * when black moves. A single full movement represents a move of both black and white teams.
+     * </p>
+     * <br>
+     * Starts at 0.
      * @return the total number of full movements that occurred.
      */
     public int getTotalNumFullMoves() {
