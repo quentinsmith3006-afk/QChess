@@ -936,6 +936,7 @@ public class MoveLogic extends ChessLogic {
         Enpassant enpassant = new Enpassant(onePlaceUnder, enpassPawn.getTeam());
         this.enpassantInfo = new EnpassantInfo(enpassant.getCoordinate(), enpassPawn.getTeam());
         enpassant.setPosition(chessBoard.getChessPositions()[newBtnId]);
+        chessBoard.allChessPieces.add(enpassant);
         onePlaceUnderPawn.setChessPiece(enpassant);
     }
 
@@ -944,8 +945,8 @@ public class MoveLogic extends ChessLogic {
      */
     private void removeSpecialPieces() {
         enpassantInfo = null;
-        for (int i = 0; i < chessBoard.chessPieces.size(); i++) {
-            ChessPiece chessPiece = chessBoard.chessPieces.get(i);
+        for (int i = 0; i < chessBoard.allChessPieces.size(); i++) {
+            ChessPiece chessPiece = chessBoard.allChessPieces.get(i);
 
             // Ensures that special piece removal doesn't have an impact on playables
             memoizedPastPositions.clear();
@@ -956,7 +957,7 @@ public class MoveLogic extends ChessLogic {
                 chessPosition.setChessPiece(null);
                 chessPosition.setText("");
                 chessPieceNumMovesMap.remove(chessPiece);
-                chessBoard.chessPieces.remove(chessPiece);
+                chessBoard.allChessPieces.remove(chessPiece);
                 i--;
             } // if
         } // for
@@ -1110,7 +1111,7 @@ public class MoveLogic extends ChessLogic {
             clearAllAttackers();
 
             // CHECK
-            for (ChessPiece oneOfAllChessPieces : chessBoard.chessPieces) {
+            for (ChessPiece oneOfAllChessPieces : chessBoard.allChessPieces) {
                 addAttackersToNewPos(chessPiece.getTeam(), oneOfAllChessPieces, pastPos, futurePos);
             } // for-each
         } // if
@@ -1225,11 +1226,11 @@ public class MoveLogic extends ChessLogic {
     public void processGameEnd(ChessPiece chessPiece, ChessPosition futurePos) {
         scanForCheck(chessPiece, futurePos);
 
-        for (ChessPiece oneOfAllChessPieces : chessBoard.chessPieces) {
+        for (ChessPiece oneOfAllChessPieces : chessBoard.allChessPieces) {
             playableSquaresRefinery(oneOfAllChessPieces, oneOfAllChessPieces.getPosition(), chessBoard.chessPositions, false, false);
         } // for-each
 
-        for (ChessPiece oneOfAllChessPieces : chessBoard.chessPieces) {
+        for (ChessPiece oneOfAllChessPieces : chessBoard.allChessPieces) {
             playableSquaresRefinery(oneOfAllChessPieces, oneOfAllChessPieces.getPosition(), chessBoard.chessPositions, false, false);
         } // for-each
 
@@ -1406,7 +1407,7 @@ public class MoveLogic extends ChessLogic {
      */
     public void remove(ChessPosition pos, boolean capture) {
         if (capture) {
-            chessBoard.chessPieces.remove(pos.chessPiece);
+            chessBoard.allChessPieces.remove(pos.chessPiece);
 
             //CheckMate
             for (ChessPosition piecePlayables : playableSquaresRefinery(pos.chessPiece, pos, chessBoard.chessPositions, false, false)) {
@@ -1454,6 +1455,15 @@ public class MoveLogic extends ChessLogic {
      */
     public EnpassantInfo getEnpassantInfo() {
         return enpassantInfo;
+    }
+
+    /**
+     *
+     * @param chessPiece
+     * @return
+     */
+    public boolean isSpecialPiece(ChessPiece chessPiece) {
+        return chessPiece instanceof SpecialPiece;
     }
 
     /**

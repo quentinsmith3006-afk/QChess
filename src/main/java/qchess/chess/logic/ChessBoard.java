@@ -38,7 +38,8 @@ public class ChessBoard extends GridPane {
     public static final int width = 8;
     public static final int height = 8;
     public ChessPosition[] chessPositions;
-    public ArrayList<ChessPiece> chessPieces;
+    public ArrayList<ChessPiece> allChessPieces;
+    public ArrayList<ChessPiece> playableChessPieces;
     protected Team playerTeam = Team.WHITE;
     protected boolean castlingAllowed = true;
     protected boolean checkMateAllowed = true;
@@ -82,7 +83,7 @@ public class ChessBoard extends GridPane {
      * Initializes chess pieces, event filters and chess positions which launches the game.
      */
     public void launchGame() {
-        chessPieces = new ArrayList<>();
+        allChessPieces = new ArrayList<>();
 
         for (ChessPosition position : chessPositions) {
             EventHandler<ActionEvent> movement = (e) -> {
@@ -93,12 +94,12 @@ public class ChessBoard extends GridPane {
 
             position.setOnAction(movement);
             if (position.chessPiece != null) {
-                chessPieces.add(position.chessPiece);
+                allChessPieces.add(position.chessPiece);
             } // if
         } // for-each
         boolean whiteTeamExists = false;
         boolean blackTeamExists = false;
-        for (ChessPiece chessPiece : chessPieces) {
+        for (ChessPiece chessPiece : allChessPieces) {
             if (chessPiece.getTeam() == playerTeam) {
                 whiteTeamExists = true;
             } else {
@@ -150,7 +151,7 @@ public class ChessBoard extends GridPane {
      * Initialize chess piece's attack squares, castling vectors and images/text.
      */
     private void initChessPieces() {
-        for (ChessPiece chessPiece : chessPieces) {
+        for (ChessPiece chessPiece : allChessPieces) {
             chessPiece.setPosition(chessPositions[chessPiece.getBtnID()]);
             ChessPosition chessPosition = chessPiece.getPosition();
 
@@ -208,12 +209,12 @@ public class ChessBoard extends GridPane {
      * Sets each chess piece's position to enabled if that chess piece is the same team as {@code playerTeam}.
      */
     public void enableChessPieces() {
-        if (chessPieces.isEmpty()) {
+        if (allChessPieces.isEmpty()) {
             return;
         } // if
 
         boolean aPieceWasEnabled = false;
-        for (ChessPiece chessPiece : chessPieces) {
+        for (ChessPiece chessPiece : allChessPieces) {
             ChessPosition chessPosition = chessPiece.getPosition();
             if (chessPiece.getTeam() == playerTeam) {
                 aPieceWasEnabled = true;
@@ -236,7 +237,7 @@ public class ChessBoard extends GridPane {
      * @throws CheckOnStartException if {@code checkMateAllowed} is true and a checkable is instantly in check upon the chessboard launching.
      */
     public void initialCheckForCheck() {
-        for (ChessPiece chessPiece : chessPieces) {
+        for (ChessPiece chessPiece : allChessPieces) {
             if (moveLogic.scanForCheck(chessPiece, chessPiece.getPosition())) {
                 if (chessPiece.getTeam() == playerTeam) {
                     throw new CheckOnStartException("A checkable is instantly checked on start");
@@ -287,8 +288,22 @@ public class ChessBoard extends GridPane {
      * Getter method for {@code chessPieces}.
      * @return all chess pieces in as an arraylist.
      */
-    public ArrayList<ChessPiece> getChessPieces() {
-        return new ArrayList<>(chessPieces);
+    public ArrayList<ChessPiece> getAllChessPieces() {
+        return new ArrayList<>(allChessPieces);
+    }
+
+    /**
+     * @return all playable chess pieces which as an array list.
+     */
+    public ArrayList<ChessPiece> getAllPlayableChessPieces() {
+        ArrayList<ChessPiece> playableChessPieces = new ArrayList<>();
+        for (ChessPiece chessPiece : allChessPieces) {
+            if (!(chessPiece instanceof SpecialPiece)) {
+                playableChessPieces.add(chessPiece);
+            } // if
+        } // for-each
+
+        return playableChessPieces;
     }
 
     /**
