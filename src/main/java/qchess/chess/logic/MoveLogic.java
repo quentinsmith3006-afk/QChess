@@ -934,7 +934,18 @@ public class MoveLogic extends ChessLogic {
         Coordinate onePlaceUnder = new Coordinate(newBtnId);
 
         Enpassant enpassant = new Enpassant(onePlaceUnder, enpassPawn.getTeam());
-        this.enpassantInfo = new EnpassantInfo(enpassant.getCoordinate(), enpassPawn.getTeam());
+        ChessPiece leftChessPiece = null;
+        ChessPiece RightChessPiece = null;
+
+        Coordinate enpassCoord = enpassPawn.getCoordinate();
+        if (Coordinate.isBtnIDInBounds(enpassCoord.getBtnID() - 1)) {
+            leftChessPiece = chessPositions[enpassCoord.getBtnID() - 1].getChessPiece();
+        }
+        if (Coordinate.isBtnIDInBounds(enpassCoord.getBtnID() + 1)) {
+            RightChessPiece = chessPositions[enpassCoord.getBtnID() + 1].getChessPiece();
+        }
+
+        this.enpassantInfo = new EnpassantInfo(enpassant.getCoordinate(), enpassPawn.getTeam(), leftChessPiece, RightChessPiece);
         enpassant.setPosition(chessBoard.getChessPositions()[newBtnId]);
         chessBoard.allChessPieces.add(enpassant);
         onePlaceUnderPawn.setChessPiece(enpassant);
