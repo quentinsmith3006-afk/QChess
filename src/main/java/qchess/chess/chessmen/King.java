@@ -76,8 +76,8 @@ public class King extends ChessPiece implements Checkable, Castlable {
     public HashMap<PieceScalar, CastleVector> getCastleDirections() {
         HashMap<PieceScalar, CastleVector> moves = new HashMap<>();
 
-        CastleVector leftVector = new CastleVector(this.coordinate, 0, -1, PieceVector.INF, "LEFT " + this.team);
-        CastleVector rightVector = new CastleVector(this.coordinate, 0, 1, PieceVector.INF, "RIGHT " + this.team);
+        CastleVector leftVector = new CastleVector(this.coordinate, 0, -1, PieceVector.INF, "QUEENSIDE " + this.team);
+        CastleVector rightVector = new CastleVector(this.coordinate, 0, 1, PieceVector.INF, "KINGSIDE " + this.team);
 
         // represents the square where the user can click to castle
         PieceScalar leftCastlePlayable =  new PieceScalar(this.coordinate, new Coordinate(getRow(), getCol() - 2));
