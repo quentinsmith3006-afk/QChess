@@ -1458,11 +1458,11 @@ public class MoveLogic extends ChessLogic {
     }
 
     /**
-     *
-     * @param chessPiece
-     * @return
+     * Checks if a piece is special or not.
+     * @param chessPiece chess piece to check.
+     * @return true if the chess piece is special and false if not.
      */
-    public boolean isSpecialPiece(ChessPiece chessPiece) {
+    public static boolean isSpecialPiece(ChessPiece chessPiece) {
         return chessPiece instanceof SpecialPiece;
     }
 
