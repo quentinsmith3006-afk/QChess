@@ -45,30 +45,32 @@ public class BoundedPieceVector extends PieceVector {
         // deltaRow && deltaCol is 0 then vector is essentially a scalar
         if (deltaRow == 0 && deltaCol == 0) {
             throw new IllegalArgumentException("deltaRow and deltaCol cannot be 0 at the same time.");
-        }
+        } // if
+
+        // DEPRECATED VECTOR GENERATION. KEEPING IT HERE FOR TESTING REASONS
         /*
-        double r = start.getRow() + (deltaRow < 0 ? Math.floor(deltaRow) : deltaRow);
-        double c = start.getCol() + (deltaCol < 0 ? Math.floor(deltaCol) : deltaCol);
-
-        double m = magnitude;
-
-        Function<Integer, Boolean> isRowInBounds = (g) -> g < ChessBoard.height && g >= 0;
-        Function<Integer, Boolean> isColInBounds = (g) -> g < ChessBoard.width && g >= 0;
-
-        for (;isRowInBounds.apply((int) Math.ceil(r)) && isColInBounds.apply((int) Math.ceil(c)) && m > 0; r += deltaRow,  c += deltaCol, m--) {
-            int appliedR = (int) Math.ceil(r);
-            int appliedC = (int) Math.ceil(c);
-
-            coordinates.add(new Coordinate(appliedR, appliedC));
-        }
-
+         * double r = start.getRow() + (deltaRow < 0 ? Math.floor(deltaRow) : deltaRow);
+         *  double c = start.getCol() + (deltaCol < 0 ? Math.floor(deltaCol) : deltaCol);
+         *
+         * double m = magnitude;
+         *
+         * Function<Integer, Boolean> isRowInBounds = (g) -> g < ChessBoard.height && g >= 0;
+         * Function<Integer, Boolean> isColInBounds = (g) -> g < ChessBoard.width && g >= 0;
+         *
+         * for (;isRowInBounds.apply((int) Math.ceil(r)) && isColInBounds.apply((int) Math.ceil(c)) && m > 0; r += deltaRow,  c += deltaCol, m--) {
+         *   int appliedR = (int) Math.ceil(r);
+         *   int appliedC = (int) Math.ceil(c);
+         *
+         *   coordinates.add(new Coordinate(appliedR, appliedC));
+         * }
+         *
          */
 
         if (Math.abs(deltaRow) > Math.abs(deltaCol)) {
             generateColVector(deltaRow, deltaCol, magnitude);
         } else {
             generateRowVector(deltaRow, deltaCol, magnitude);
-        }
+        } // else
 
         this.sort(this.coordinates);
     }
@@ -103,7 +105,7 @@ public class BoundedPieceVector extends PieceVector {
         int cM = Math.abs(deltaCol); // Column magnitude
 
         for (; isRowInBounds.apply(r) && isColInBounds.apply(c) && m > 0; r+=rowDirection, cM = Math.abs(deltaCol)) {
-            for (; isColInBounds.apply(c) && m > 0 && cM > 0; c+=colDirection, m--, cM--) {
+            for (; isColInBounds.apply(c) && m > 0 && cM > 0; c += colDirection, m--, cM--) {
                 coordinates.add(new Coordinate(r, c));
             } // for
         } // for
@@ -129,7 +131,7 @@ public class BoundedPieceVector extends PieceVector {
         int rM = Math.abs(deltaRow); // row magnitude
 
         for (; isColInBounds.apply(c) && isRowInBounds.apply(r) && m > 0; c+=colDirection, rM = Math.abs(deltaRow)) {
-            for (; isRowInBounds.apply(r) && m > 0 && rM > 0; r+=rowDirection, m--, rM--) {
+            for (; isRowInBounds.apply(r) && m > 0 && rM > 0; r += rowDirection, m--, rM--) {
                 coordinates.add(new Coordinate(r, c));
             } // for
         } // for

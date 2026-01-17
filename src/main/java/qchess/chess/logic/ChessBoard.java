@@ -11,6 +11,7 @@ import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.create.direction.CastleVector;
 import qchess.chess.create.direction.PieceScalar;
+import qchess.chess.create.exceptions.CheckOnStartException;
 import qchess.chess.create.exceptions.MultipleBoardTypesException;
 import qchess.chess.create.exceptions.NullBoardException;
 import qchess.chess.create.interfaces.Castlable;
@@ -130,7 +131,9 @@ public class ChessBoard extends GridPane {
             this.addEventFilter(MovementEvent.MOVEMENT, (ChessEvent me) -> this.switchTeams());
         } // if
         if (checkAllowed) {
-            this.addEventFilter(CheckEvent.CHECK, (ChessEvent me) -> {pieceInCheck = true;});
+            this.addEventFilter(CheckEvent.CHECK, (ChessEvent me) -> {
+                pieceInCheck = true;
+            });
 
             if (checkMateAllowed) {
                 this.addEventFilter(CheckMateEvent.CHECK_MATE, event -> {
@@ -221,7 +224,7 @@ public class ChessBoard extends GridPane {
             } // if
         } // for-each
 
-        // Mechanism which allows you to start on the team which you have pieces.
+        // Algorithm which allows you to start on the team which you have pieces.
         if (!aPieceWasEnabled) {
             switchTeams();
             enableChessPieces();
@@ -230,12 +233,13 @@ public class ChessBoard extends GridPane {
 
     /**
      * Checks for a check at the start of the game.
+     * @throws CheckOnStartException if {@code checkMateAllowed} is true and a checkable is instantly in check upon the chessboard launching.
      */
     public void initialCheckForCheck() {
         for (ChessPiece chessPiece : chessPieces) {
             if (moveLogic.scanForCheck(chessPiece, chessPiece.getPosition())) {
                 if (chessPiece.getTeam() == playerTeam) {
-                    System.out.println("BASICALLY CHECKMATE");
+                    throw new CheckOnStartException("A checkable is instantly checked on start");
                 } // if
             } // if
         } // for-each

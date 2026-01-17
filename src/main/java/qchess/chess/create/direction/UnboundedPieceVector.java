@@ -38,7 +38,7 @@ public class UnboundedPieceVector extends PieceVector {
                 } else if (btnID % ChessBoard.height == 0) {
                     btnID -= 8;
                 } // else
-            }
+            } // if
 
             if (Coordinate.isBtnIDInBounds(btnID)) {
                 coordinates.add(new Coordinate(btnID));

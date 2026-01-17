@@ -165,7 +165,7 @@ public class PieceScalar extends ChessDirection {
             Coordinate reflectedCoord = new Coordinate(row, start.getCol() + colDist * -1);
             result.add(new PieceScalar(this.start, reflectedCoord));
             additionalUncheckedCoordinates.add(reflectedCoord);
-        }
+        } // for-each
 
         uncheckedCoordinates.addAll(additionalUncheckedCoordinates);
         return result;
@@ -176,7 +176,7 @@ public class PieceScalar extends ChessDirection {
         StringBuilder result = new StringBuilder();
         for (Coordinate coordinate : this.coordinates) {
             result.append("(").append(coordinate.toString()).append(") ");
-        }
+        } // for-each
         return result.toString();
     }
 }

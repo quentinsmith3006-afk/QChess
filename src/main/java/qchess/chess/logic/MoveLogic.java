@@ -1,5 +1,6 @@
 package qchess.chess.logic;
 
+import jdk.swing.interop.SwingInterOpUtils;
 import qchess.chess.chessmen.Pawn;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
@@ -151,7 +152,7 @@ public class MoveLogic extends ChessLogic {
         if (pastChessPosition != null) {
             ChessPiece pastChessPiece = pastChessPosition.getChessPiece();
 
-            if (!(clickedPosition.getChessPiece() instanceof Castlable) && altCastle) {
+            if (!(clickedPosition.getChessPiece() instanceof Castlable) && altCastle && chessBoard.castlingAllowed) {
                 castle((Castlable) pastChessPiece, pastChessPiece, clickedPosition, chessPositions);
                 altCastle = false;
                 return;
@@ -329,7 +330,6 @@ public class MoveLogic extends ChessLogic {
                     Coordinate coordOfCoCastlingPiece = positionOfDependent.getChessPiece().getCoordinate();
                     // If there is any piece in the way then it is the castlable.
                     if (!coordOfCoCastlingPiece.equals(vector.getDependentTo())) {
-                        System.out.println(" SWITCH");
                         switchPlaces(posWhereDependentGoes, positionOfDependent);
                     } // if
 
@@ -340,12 +340,9 @@ public class MoveLogic extends ChessLogic {
                 } // catch
 
                 try {
-                    System.out.println(chessPositions[castlableToBtnID].getChessPiece() + " CHESSPIECE");
-                    System.out.println(pastChessPiece);
                     move(chessPositions[pastChessPiece.getBtnID()], chessPositions[castlableToBtnID], false);
                 } catch (PieceInWayException e) {
                     if (!pastChessPiece.getCoordinate().equals(vector.getCastlableTo())) {
-                        System.out.println(pastChessPiece.getCoordinate() + " " + vector.getCastlableTo() + " GEN");
                         switchPlaces(chessPositions[castlableToBtnID], chessPositions[pastChessPiece.getBtnID()]);
                     } // if
 
@@ -450,7 +447,7 @@ public class MoveLogic extends ChessLogic {
         The memoization has no real affect if the game is in a state of constant movement because each move causes a
         massive change on the chess board that the memoization algorithm currently can't account for.
          */
-        if (memoizedPastPositions.containsKey(chessPiece) && isFromClick && !pieceIsPinning && !(chessPiece instanceof Castlable)) {
+        if (memoizedPastPositions.containsKey(chessPiece) && isFromClick && !pieceIsPinning && !(chessPiece instanceof Castlable) && !chessBoard.pieceInCheck) {
 
             pastChessPosition = clickedPosition;
 
@@ -863,6 +860,7 @@ public class MoveLogic extends ChessLogic {
         } // if
 
         for (ChessPosition chessPosition : pastPositions) {
+
             if (chessPosition.getChessPiece() == null || (chessPosition.getChessPiece() != null && chessPosition.getChessPiece().getTeam() != chessPiece.getTeam())) {
                 if (isFromClick) {
                     chessPosition.setDisable(false);
@@ -882,33 +880,33 @@ public class MoveLogic extends ChessLogic {
      */
     private void pinPointMoves(ChessPiece chessPiece, List<Coordinate> convertedPosToCoord, Information info, ArrayList<Coordinate> possibleMovesWithCondition, boolean isFromClick) {
 
-            int distFromOrigin = 0;
+        int distFromOrigin = 0;
 
-            for (Coordinate coord : possibleMovesWithCondition) {
-                if (convertedPosToCoord.contains(coord)) {
-                    if (info.distFromOrigin() >= distFromOrigin && info.victim().getTeam() == chessPiece.getTeam()) { // making equals fixes piece not being able to capture when piece in check
+        for (Coordinate coord : possibleMovesWithCondition) {
+            if (convertedPosToCoord.contains(coord)) {
+                if (info.distFromOrigin() >= distFromOrigin && info.victim().getTeam() == chessPiece.getTeam()) { // making equals fixes piece not being able to capture when piece in check
 
-                        ChessPiece pieceInAttackVector = chessBoard.chessPositions[coord.getBtnID()].getChessPiece();
+                    ChessPiece pieceInAttackVector = chessBoard.chessPositions[coord.getBtnID()].getChessPiece();
 
-                        if (pieceInAttackVector != null) {
-                            if (pieceInAttackVector.getTeam() != chessPiece.getTeam()) {
-                                if (isFromClick) {
-                                    chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
-                                } // if
-                                numMovesAvailable++;
-                            } // if
-                        } else {
+                    if (pieceInAttackVector != null) {
+                        if (pieceInAttackVector.getTeam() != chessPiece.getTeam()) {
                             if (isFromClick) {
                                 chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
                             } // if
                             numMovesAvailable++;
-                        } // else
+                        } // if
+                    } else {
+                        if (isFromClick) {
+                            chessBoard.chessPositions[coord.getBtnID()].setDisable(false);
+                        } // if
+                        numMovesAvailable++;
+                    } // else
 
-                    } // if
                 } // if
+            } // if
 
-                distFromOrigin++;
-            } // for-each
+            distFromOrigin++;
+        } // for-each
 
     }
 
@@ -1042,7 +1040,6 @@ public class MoveLogic extends ChessLogic {
      * @param futurePos position which the chess piece will move to.
      */
     public void switchPlaces(ChessPosition pastPos, ChessPosition futurePos) {
-        System.out.println(futurePos.getChessPiece() + " " + pastPos.getChessPiece());
         if (futurePos.getChessPiece() == null || pastPos.getChessPiece() == null) {
             throw new IncompleteSwitchPositionsException("pastPost and futurePos must have chess pieces to switch them.");
         }
@@ -1224,6 +1221,8 @@ public class MoveLogic extends ChessLogic {
      * @param futurePos position which is checked for a game ending event.
      */
     public void processGameEnd(ChessPiece chessPiece, ChessPosition futurePos) {
+        scanForCheck(chessPiece, futurePos);
+
         for (ChessPiece oneOfAllChessPieces : chessBoard.chessPieces) {
             playableSquaresRefinery(oneOfAllChessPieces, oneOfAllChessPieces.getPosition(), chessBoard.chessPositions, false, false);
         } // for-each
@@ -1231,16 +1230,16 @@ public class MoveLogic extends ChessLogic {
         for (ChessPiece oneOfAllChessPieces : chessBoard.chessPieces) {
             playableSquaresRefinery(oneOfAllChessPieces, oneOfAllChessPieces.getPosition(), chessBoard.chessPositions, false, false);
         } // for-each
+
 
         int totalMoves = 0;
-
         for (Map.Entry<ChessPiece, Integer> numMovesEntry : chessPieceNumMovesMap.entrySet()) {
             if (numMovesEntry.getKey().getTeam() != chessPiece.getTeam()) {
                 totalMoves += numMovesEntry.getValue();
             } // if
         } // for-each
 
-        if (scanForCheck(chessPiece, futurePos) && chessBoard.checkMateAllowed && totalMoves == 0) {
+        if (chessBoard.pieceInCheck && chessBoard.checkMateAllowed && totalMoves == 0) {
             pinInformation.clear();
             checkInformation.clear();
 

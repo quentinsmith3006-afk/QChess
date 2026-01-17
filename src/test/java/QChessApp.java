@@ -15,6 +15,9 @@ import qchess.chess.logic.ChessPosition;
 import qchess.chess.logic.event.ChessEvent;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class QChessApp extends Application {
     Stage stage;
@@ -35,8 +38,7 @@ public class QChessApp extends Application {
 
 
         chessBoard = ChessBoard.newBuilder()
-                .emptyNineSixtyChessBoard()
-                .add(new TesterChessPiece(new Coordinate(7,6), Team.BLACK))
+                .normalChessBoard()
                 .build()
         ;
 
@@ -50,6 +52,7 @@ public class QChessApp extends Application {
         // chessBoard.chessPositions[new Coordinate(5,5).getBtnID()].setChessPiece(new Bishop(new Coordinate(3,3), Team.WHITE));
 
         chessBoard.launchGame();
+
 
         // Maybe add more information to the castleinfo hashmap
         EventHandler<ChessEvent> eventHandler = (event) -> {

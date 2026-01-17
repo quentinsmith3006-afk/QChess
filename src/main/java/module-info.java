@@ -4,6 +4,7 @@ module qchess.chess {
     requires javafx.graphics;
     requires org.controlsfx.controls;
     requires org.jetbrains.annotations;
+    requires jdk.unsupported.desktop;
 
     exports qchess.chess.chessmen;
     exports qchess.chess.create.direction;

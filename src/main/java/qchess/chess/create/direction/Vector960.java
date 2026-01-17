@@ -61,9 +61,6 @@ public class Vector960 extends CastleVector {
             return result;
         }
 
-        /*
-
-
         while ((r / c) > 1) {
             if (r > c) {
                 r -= c;
@@ -73,7 +70,6 @@ public class Vector960 extends CastleVector {
                 break;
             }
         }
-        */
 
         result.add(r);
         result.add(c);

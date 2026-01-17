@@ -22,9 +22,12 @@ public class TesterChessPiece extends ChessPiece {
     public List<ChessDirection> getRawPlayableDirections() {
         List<ChessDirection> moves = new ArrayList<>();
 
-        UnboundedPieceVector bottomRightDiagonal = new UnboundedPieceVector(this.coordinate, 2, 1, BoundedPieceVector.INF);
+        UnboundedPieceVector right = new UnboundedPieceVector(this.coordinate, 1, 0, BoundedPieceVector.INF);
+        UnboundedPieceVector up = new UnboundedPieceVector(this.coordinate, 0, 1, BoundedPieceVector.INF);
 
-        moves.add(bottomRightDiagonal);
+
+        moves.add(up);
+        moves.add(right);
         return moves;
     }
 }
