@@ -348,11 +348,12 @@ public class MoveLogic extends ChessLogic {
                     } // if
                 } // catch
 
-                // ensures only one movement event call
-                chessBoard.fireEvent(new MovementEvent(pastChessPiece));
                 if (pastChessPiece.getTeam() == Team.BLACK) {
                     numFullMoves++;
-                }
+                } // if
+
+                // ensures only one movement event call
+                chessBoard.fireEvent(new MovementEvent(pastChessPiece));
                 chessBoard.enableChessPieces();
 
                 chessBoard.fireEvent(new CastleEvent(pastChessPiece, terminalPiece));
@@ -1127,10 +1128,10 @@ public class MoveLogic extends ChessLogic {
 
         // Castling calls move twice: the if statement ensures only 1 movement event is created
         if (chessPiece.getTeam() == chessBoard.playerTeam && callFiresMovementEvent) {
-            chessBoard.fireEvent(new MovementEvent(chessPiece));
             if (chessPiece.getTeam() == Team.BLACK) {
                 numFullMoves++;
-            }
+            } // if
+            chessBoard.fireEvent(new MovementEvent(chessPiece));
         } // if
 
         chessBoard.enableChessPieces();

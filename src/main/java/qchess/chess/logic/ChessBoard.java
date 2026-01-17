@@ -734,7 +734,10 @@ public class ChessBoard extends GridPane {
                         pos.setId("evenButton");
                     } // else
 
-                    pos.getStylesheets().add("chessboard.css");
+                    if (getClass().getResource("/chessboard.css").toExternalForm() == null) {
+                        throw new NullPointerException("ChessBoard.css not found");
+                    } // if
+                    pos.getStylesheets().add(getClass().getResource("/chessboard.css").toExternalForm());
                     chessBoard.add(chessPositions[btnID], col, row);
                 } // for
             } // for
