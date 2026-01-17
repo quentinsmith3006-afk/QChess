@@ -1,11 +1,7 @@
 package qchess.chess.logic;
 
-import jdk.swing.interop.SwingInterOpUtils;
 import qchess.chess.chessmen.Pawn;
-import qchess.chess.create.ChessPiece;
-import qchess.chess.create.Coordinate;
-import qchess.chess.create.MovesType;
-import qchess.chess.create.Team;
+import qchess.chess.create.*;
 import qchess.chess.create.direction.CastleVector;
 import qchess.chess.create.direction.PieceScalar;
 import qchess.chess.create.exceptions.IncompleteSwitchPositionsException;
@@ -17,7 +13,6 @@ import qchess.chess.create.direction.ChessDirection;
 import qchess.chess.create.special.Enpassant;
 import qchess.chess.logic.event.*;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -69,7 +64,7 @@ public class MoveLogic extends ChessLogic {
     int numMoves;
     int numMovesToFiftyMoveRuleDraw;
     int numMovesAvailable;
-    Enpassant enpassant; // records whether there is an enpassant piece or not.
+    EnpassantInfo enpassantInfo; // records whether there is an enpassant piece or not.
 
     /**
      * Holds the 3 chess pieces involved in a pin: instigator, victim and checkable.
@@ -934,7 +929,7 @@ public class MoveLogic extends ChessLogic {
         Coordinate onePlaceUnder = new Coordinate(newBtnId);
 
         Enpassant enpassant = new Enpassant(onePlaceUnder, enpassPawn.getTeam());
-        this.enpassant = enpassant;
+        this.enpassantInfo = new EnpassantInfo(enpassant.getCoordinate(), enpassPawn.getTeam());
         enpassant.setPosition(chessBoard.getChessPositions()[newBtnId]);
         chessBoard.chessPieces.add(enpassant);
         onePlaceUnderPawn.setChessPiece(enpassant);
@@ -944,7 +939,7 @@ public class MoveLogic extends ChessLogic {
      * Removes any chess pieces that extends SpecialPiece.
      */
     private void removeSpecialPieces() {
-        enpassant = null;
+        enpassantInfo = null;
         for (int i = 0; i < chessBoard.chessPieces.size(); i++) {
             ChessPiece chessPiece = chessBoard.chessPieces.get(i);
 
@@ -1437,8 +1432,8 @@ public class MoveLogic extends ChessLogic {
     /**
      * @return the enpassant piece if it is on the board and null if not.
      */
-    public Enpassant getEnpassant() {
-        return enpassant;
+    public EnpassantInfo getEnpassantInfo() {
+        return enpassantInfo;
     }
 
     /**
