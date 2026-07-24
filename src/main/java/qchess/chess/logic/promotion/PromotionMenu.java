@@ -10,7 +10,7 @@ import qchess.chess.logic.ChessBoard;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * This graphic showcases many {@code PromotionCard} objects for users to click on and promote their chess piece.
  * {@link qchess.chess.logic.promotion.PromotionCard}
  */

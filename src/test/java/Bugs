@@ -1,10 +1,13 @@
-PATCH NOTES:
-Fixed stalemate not occurring when a piece changes row.
-Fixed double check when a queen whom faces its own pawn which faces the opposing queen capture checks.
-Pinned pieces can no longer move to other attack vectors.
-Fixed discovered check not properly initiating a check event.
-Added a way to get a enpassant piece if there is one.
-Added a way to get the total number of moves.
-Added a way to get the total number of moves until 50 move draw.
-Added a way to know which castling is available based on castle vector.
+bug: checkmate is broken again.
 
+Things to do:
+Make unbounded vectors continuous
+Make vector960 be able to reliably simplify rise and run
+
+chess with check
+
+
+
+Chess960 vector -> broken after a couple of moves n shit | Initialize castle vector breaks the chess game
+
+PATCH NOTES:

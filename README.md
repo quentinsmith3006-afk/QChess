@@ -36,11 +36,19 @@ Features added to version 2:
 * and probably more
 
 - -
-
-Future Features
-* Chess960 castling compatability
-* Non-hardcoded enpassant
-* New vector that allows chess piece wall hacks
+Latest Update:
+CHESS960 UPDATE:
+* Fixed pinned pieces not being able to move along the vectors that pinned them.
+* Fixed co-castling piece not disabling after castle.
+* Fixed checkables being unable to detect if a piece castle checks.
+* Fixed castling being dependent on co-castling piece safety.
+* Fixed unbounded vectors allowing diagonals to switch color.
+* Added Unbounded vectors.
+--> Not bounded by the edges of the chess board.
+* Added dual purpose vector960 for both piece creation and castling.
+--> This vector is automatically generated with its terminal point set to a chess piece specified in the vectors creation. (This vector basically connects 2 chess pieces).
+* Changed PieceVector to BoundedPieceVector and re-wrote it to rely on rise over run when calculating the vector's pathway.
+* Added new nineSixtyChessBoard and emptyNineSixtyChessBoard to the preset chess board selections.
 
 ## Contribution
 Feel free to contribute, just run tests and stuff. I will have to approve
@@ -52,7 +60,6 @@ any pushes though.
 *Java(TM) SE Runtime Environment (build 21.0.9+7-LTS-338)*
 
 ## Installation
-*0.2.6* is the best version to use currently.
 **https://jitpack.io/#quentinsmith3006-afk/QChess**
 
 ## Grid Systems
@@ -158,7 +165,7 @@ This is essentially a bishop.
 note: *if you do not provide graphical representations of your chess piece, the class name will represent it instead.*
 ```
 import qchess.chess.create.direction.ChessDirection;
-import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.direction.BoundedPieceVector;
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;

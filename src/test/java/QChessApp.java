@@ -11,9 +11,13 @@ import qchess.chess.chessmen.*;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
 import qchess.chess.logic.ChessBoard;
+import qchess.chess.logic.ChessPosition;
 import qchess.chess.logic.event.ChessEvent;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class QChessApp extends Application {
     Stage stage;
@@ -29,23 +33,24 @@ public class QChessApp extends Application {
     public void init() {
         Image img = new Image("galaxybackground.png");
         background = new ImageView(img); // provide image
+        Rook rook1 = new Rook(new Coordinate(0,1), Team.WHITE);
+        Rook rook2 = new Rook(new Coordinate(0,7), Team.WHITE);
+
+
         chessBoard = ChessBoard.newBuilder()
-                .emptyChessBoard()
-                .add(new King(new Coordinate(0,0), Team.BLACK))
-                .add(new King(new Coordinate(2,0), Team.WHITE))
-                .add(new Queen(new Coordinate(1,5), Team.WHITE))
-                .add(new Queen(new Coordinate(3,5), Team.WHITE))
+                .nineSixtyChessBoard()
                 .build()
         ;
 
         chessBoard.launchGame();
+
 
         // Maybe add more information to the castleinfo hashmap
         EventHandler<ChessEvent> eventHandler = (event) -> {
             //System.out.println();
 
             chessBoard.getMoveLogic().getCastleInformation().forEach((String CastleName, Boolean canCastle) -> {
-                //System.out.println(CastleName + " " + canCastle);
+                System.out.println(CastleName + " " + canCastle);
             });
             //System.out.println();
 

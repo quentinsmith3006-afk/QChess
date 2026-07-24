@@ -8,7 +8,7 @@ import qchess.chess.create.interfaces.SpecialPiece;
 
 import java.util.List;
 
-public class Enpassant extends ChessPiece implements SpecialPiece {
+public final class Enpassant extends ChessPiece implements SpecialPiece {
 
     public Enpassant(Coordinate coordinate, Team team) {
         super(coordinate, team, null, null);

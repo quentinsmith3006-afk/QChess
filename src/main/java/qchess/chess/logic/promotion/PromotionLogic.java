@@ -11,7 +11,7 @@ import qchess.chess.logic.event.PostPromotionEvent;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * Logic that pertains to promotion is contained here.
  */
 public class PromotionLogic extends ChessLogic {
@@ -65,8 +65,8 @@ public class PromotionLogic extends ChessLogic {
 
         moveLogic.scanForCheck(promotionPiece, pos);
 
-        chessBoard.chessPieces.remove(originalPiece);
-        chessBoard.chessPieces.add(promotionPiece);
+        chessBoard.allChessPieces.remove(originalPiece);
+        chessBoard.allChessPieces.add(promotionPiece);
 
         if (stage != null && stage.isShowing()) {
             stage.close();

@@ -1,16 +1,17 @@
 import qchess.chess.create.ChessPiece;
 import qchess.chess.create.Coordinate;
 import qchess.chess.create.Team;
+import qchess.chess.create.direction.BoundedPieceVector;
 import qchess.chess.create.direction.ChessDirection;
-import qchess.chess.create.direction.PieceVector;
+import qchess.chess.create.direction.UnboundedPieceVector;
 import qchess.chess.create.piecemodifiers.HorizonalSymmetry;
 import qchess.chess.create.piecemodifiers.VerticalSymmetry;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@HorizonalSymmetry
 @VerticalSymmetry
+@HorizonalSymmetry
 public class TesterChessPiece extends ChessPiece {
 
     public TesterChessPiece(Coordinate coordinate, Team team) {
@@ -21,12 +22,9 @@ public class TesterChessPiece extends ChessPiece {
     public List<ChessDirection> getRawPlayableDirections() {
         List<ChessDirection> moves = new ArrayList<>();
 
-        PieceVector bottomRightDiagonal = new PieceVector(this.coordinate, 2, 1, PieceVector.INF);
-        PieceVector diag = new PieceVector(this.coordinate, 1, 2, PieceVector.INF);
+        UnboundedPieceVector right = new UnboundedPieceVector(this.coordinate, 1, 1, BoundedPieceVector.INF);
 
-
-        moves.add(bottomRightDiagonal);
-        moves.add(diag);
+        moves.add(right);
         return moves;
     }
 }

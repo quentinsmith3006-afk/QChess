@@ -11,7 +11,7 @@ import java.util.Objects;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
  * {@code ChessPiece} is the general representation of a basic chess piece.
  * {@link qchess.chess.create.Coordinate}
  * {@link qchess.chess.logic.ChessPosition}

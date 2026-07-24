@@ -7,12 +7,16 @@ import java.util.Objects;
 
 /**
  * @author Quentin Smith
- *
+ * <br>
+ * <p>
  * {@code Coordinate} represents a actual coordinate (e.g. (0, 4), (1, 2) ... etc.), a btnID location (e.g. (0, 1, 2 ... etc.))
  * and algebraic notation (e.g. a1, b4, g3 ... etc.).
- *
+ * </p>
+ * <br>
+ * <p>
  * Coordinates are not bounded to a chess board and are supposed to be very disposable.
  * Though, if a coordinate is out of bounds, it will not have a defined {@code algebraicName}.
+ * </p>
  */
 public class Coordinate {
     int row;
@@ -37,7 +41,7 @@ public class Coordinate {
         }
         this.row = row;
         this.col = col;
-        this.btnID = row * ChessBoard.width + col; // make sure this is correct
+        this.btnID = Coordinate.getBtnID(row, col); // make sure this is correct
     }
 
     /**
@@ -89,8 +93,42 @@ public class Coordinate {
     }
 
     /**
+     * Generates the id position from {@code row} and {@code col} on the board.
+     * @param row row.
+     * @param col column.
+     * @return the id position on the board.
+     */
+    public static int getBtnID(int row, int col) {
+        return row * ChessBoard.width + col;
+    }
+
+    /**
+     * @param row row to check if in bounds.
+     * @return true if the given row is in bounds and false otherwise.
+     */
+    public static boolean isRowInBounds(int row) {
+        return row >= 0 && row < ChessBoard.height;
+    }
+
+    /**
+     * @param col col to check if in bounds.
+     * @return true if the given row is in bounds and false otherwise.
+     */
+    public static boolean isColInBounds(int col) {
+        return col >= 0 && col < ChessBoard.width;
+    }
+
+    /**
+     * @param btnID btnID to check if in bounds.
+     * @return true if the given row is in bounds and false otherwise.
+     */
+    public static boolean isBtnIDInBounds(int btnID) {
+        return btnID >= 0 && btnID < ChessBoard.height * ChessBoard.width;
+    }
+
+    /**
      * Chess has algebraic notation and this method returns a representation of that.
-     * @return a initialized algebraic map of letters and their corresponding integer.
+     * @return an initialized algebraic map of letters and their corresponding integer.
      */
     private static HashMap<String, Integer> algebraicMapInit() {
         HashMap<String, Integer> map = new HashMap<>();
