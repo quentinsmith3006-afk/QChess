@@ -38,18 +38,9 @@ public class QChessApp extends Application {
 
 
         chessBoard = ChessBoard.newBuilder()
-                .normalChessBoard()
+                .nineSixtyChessBoard()
                 .build()
         ;
-
-        for (ChessPosition pos: chessBoard.chessPositions) {
-            if (pos.getChessPiece() != null && (pos.getChessPiece() instanceof Rook || pos.getChessPiece() instanceof King || pos.getChessPiece() instanceof Pawn)) {
-
-            } else {
-                //pos.setChessPiece(null);
-            }
-        }
-        // chessBoard.chessPositions[new Coordinate(5,5).getBtnID()].setChessPiece(new Bishop(new Coordinate(3,3), Team.WHITE));
 
         chessBoard.launchGame();
 
@@ -59,7 +50,7 @@ public class QChessApp extends Application {
             //System.out.println();
 
             chessBoard.getMoveLogic().getCastleInformation().forEach((String CastleName, Boolean canCastle) -> {
-                //System.out.println(CastleName + " " + canCastle);
+                System.out.println(CastleName + " " + canCastle);
             });
             //System.out.println();
 

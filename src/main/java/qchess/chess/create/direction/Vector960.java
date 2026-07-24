@@ -10,7 +10,13 @@ import java.util.List;
  *  NEW FEATURE
  */
 public class Vector960 extends CastleVector {
-
+    /**
+     *
+     * @param start
+     * @param dependent
+     * @param kingTo
+     * @param dependentTo
+     */
     public Vector960(Coordinate start, ChessPiece dependent, Coordinate kingTo, Coordinate dependentTo) {
         super(start, getDeltaRow(start, dependent), getDeltaCol(start, dependent), getMagnitude(start, dependent));
 

@@ -78,7 +78,7 @@ public class MoveLogic extends ChessLogic {
     /**
      *
      */
-    sealed interface Information {
+    interface Information {
         Integer distFromOrigin();
         ChessDirection direction();
         ChessPiece victim();
@@ -1154,7 +1154,7 @@ public class MoveLogic extends ChessLogic {
      * @param pastPos position which the chess piece is currently.
      * @param futurePos position which the chess piece will move to.
      */
-    public void move(ChessPosition pastPos, ChessPosition futurePos) {
+    void move(ChessPosition pastPos, ChessPosition futurePos) {
         this.move(pastPos, futurePos, true);
     }
 
@@ -1210,7 +1210,7 @@ public class MoveLogic extends ChessLogic {
      * @param futurePos position at which to scan the chess piece for check.
      * @return true if check occurred and false otherwise.
      */
-    public boolean scanForCheck(ChessPiece chessPiece, ChessPosition futurePos) {
+     public boolean scanForCheck(ChessPiece chessPiece, ChessPosition futurePos) {
         for (Map.Entry<ChessPiece, ChessPiece> dscverdChessPiece : discoveredCheckMap.entrySet()) {
             if (dscverdChessPiece.getKey().equals(chessPiece)) {
                 ChessPiece pinner = dscverdChessPiece.getValue();

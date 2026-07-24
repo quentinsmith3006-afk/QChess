@@ -116,6 +116,21 @@ public class ChessBoard extends GridPane {
     }
 
     /**
+     * Moves a chess piece {@code from} to {@code to}.
+     * This process is not verified so it may be unstable.
+     * @param from coordinate from
+     * @param to coordinate to
+     */
+    public void move(Coordinate from, Coordinate to) {
+        try {
+            moveLogic.positionClick(chessPositions[from.getBtnID()]);
+            moveLogic.positionClick(chessPositions[to.getBtnID()]);
+        } catch (ArrayIndexOutOfBoundsException aioobe) {
+            System.out.println("Coordinate to chessboard move method is out of bounds.");
+        }
+    }
+
+    /**
      * Initializes chess event filters based on what is allowed.
      */
     private void initChessEventFilters() {

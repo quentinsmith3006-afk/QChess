@@ -6,4 +6,8 @@ Make vector960 be able to reliably simplify rise and run
 
 chess with check
 
+
+
+Chess960 vector -> broken after a couple of moves n shit | Initialize castle vector breaks the chess game
+
 PATCH NOTES:
