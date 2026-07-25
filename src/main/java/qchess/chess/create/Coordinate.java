@@ -59,8 +59,8 @@ public class Coordinate {
      */
     public Coordinate(String algebraicNotation) {
         this(
-                Coordinate.ALGEBRAIC_MAP.get(algebraicNotation.substring(0, 1)),
-                Integer.parseInt(algebraicNotation.substring(1, 2))
+                Integer.parseInt(algebraicNotation.substring(1, 2))-1,
+                Coordinate.ALGEBRAIC_MAP.get(algebraicNotation.substring(0, 1))
         );
     }
 
