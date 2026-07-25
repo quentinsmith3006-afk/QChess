@@ -6,7 +6,7 @@
 
     <groupId>com.github.quentinsmith3006-afk</groupId>
     <artifactId>QChess</artifactId>
-    <version>0.8.93</version>
+    <version>0.8.94-SNAPSHOT</version>
     <name>QChess</name>
     <packaging>jar</packaging>
 
@@ -58,8 +58,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>24</source>
-                    <target>24</target>
+                    <release>21</release>
                 </configuration>
             </plugin>
             <plugin>
