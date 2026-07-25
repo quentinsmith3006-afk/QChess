@@ -1,7 +1,0 @@
-jdk:
-  - openjdk21
-
-before_install:
-  - sdk install java 24-open
-  - sdk default java 24-open
-  - export JAVA_HOME="$SDKMAN_DIR/candidates/java/current"
